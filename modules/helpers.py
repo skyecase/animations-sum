@@ -1,0 +1,220 @@
+from typing import Union
+import random
+from manim import ValueTracker, Scene, Mobject
+import manim
+import numpy as np
+from modules.interpolation import cubic_in, cubic_out
+
+def create_time_getter(scene: Scene, debug = False):
+    vt = ValueTracker()
+    scene.add(vt)
+    def updater(vt, dt):
+        vt.increment_value(dt)
+        if(debug): print(vt.get_value())
+    vt.add_updater(updater)
+    return lambda: vt.get_value()
+
+def squiggles(x, time):
+    if x == 0: return 0
+    term_1 = np.sin(np.log(x) / np.log(1.1) - 2 * time) / 70
+    term_2 = np.sin(np.log(x) / np.log(1.06) + 3 * time) / 200
+    term_3 = np.sin(np.log(x) / np.log(1.2) + 3 * time) / 70
+    return term_1 + term_2 + term_3
+
+class UpdaterContainer(Mobject):
+    def __init__(self, scene):
+        self.scene = scene
+        super().__init__()
+
+    def add_updater_before(self, updater, other_updater):
+        self.add_updater(updater, self.get_updaters().index(other_updater))
+    
+    def add_updater_after(self, updater, other_updater):
+        self.add_updater(updater, self.get_updaters().index(other_updater) + 1)
+    
+    def remove_updater_index(self, index):
+        self.remove_updater(self.get_updaters()[index])
+    
+    def pop_updater(self):
+        self.remove_updater_index(len(self.get_updaters()) - 1)
+
+def create_updater_container(scene):
+    u = UpdaterContainer(scene)
+    scene.add(u)
+    return u
+
+def sigmoid(x):
+    return np.tanh(x / 0.15)
+
+
+
+def fade_and_shift_in(mobject: manim.VMobject, shift: np.array = manim.ORIGIN, fade_rate_func = manim.linear, shift_rate_func = cubic_out, **kwargs):
+    target_pos = mobject.get_center()
+    target_opacity = 1
+    def update_func(mobject: manim.VMobject, alpha: float):
+        mobject.move_to(target_pos - shift * (1 - shift_rate_func(alpha)))
+        mobject.set_opacity(target_opacity * fade_rate_func(alpha))
+        manim.ImageMobject
+    return manim.UpdateFromAlphaFunc(mobject, update_func, rate_func = manim.linear, **kwargs)
+
+def fade_and_shift_out(mobject: manim.VMobject, shift: np.array = manim.ORIGIN, fade_rate_func = manim.linear, shift_rate_func = cubic_in, **kwargs):
+    target_pos = mobject.get_center()
+    target_opacity = 1
+    def update_func(mobject: manim.VMobject, alpha: float):
+        mobject.move_to(target_pos + shift * shift_rate_func(alpha))
+        mobject.set_opacity(target_opacity * (1 - fade_rate_func(alpha)))
+    return manim.UpdateFromAlphaFunc(mobject, update_func, rate_func = manim.linear, **kwargs)
+
+
+# purple = "#ff62fe"
+# purple_line = '#ff00f0'
+
+
+
+
+class PCreate(manim.Create):
+    def __init__(self, mobject: manim.VMobject, lag_ratio: float = 1, introducer: bool = True, **kwargs) -> None:
+        self.target_stroke_opacity = mobject.stroke_opacity
+        super().__init__(mobject, lag_ratio, introducer, **kwargs)
+
+    def interpolate_mobject(self, alpha: float) -> None:
+        if (alpha == 0):
+            self.mobject.set_stroke(opacity = 0)
+        else:
+            self.mobject.set_stroke(opacity = self.target_stroke_opacity)
+        return super().interpolate_mobject(alpha)
+
+
+def align_baseline(*tex_objects: manim.Tex):
+    text_type = type(tex_objects[0])
+    strings = [''.join(tex_object.tex_strings) for tex_object in tex_objects]
+    center = manim.VGroup(*tex_objects).get_center()
+    new_text_object = text_type(*strings).move_to(center)
+    for i in range(len(tex_objects)):
+        tex_objects[i].shift((new_text_object[i].get_center() - tex_objects[i].get_center())[1] * manim.UP)
+
+
+def grow_between(mobject: manim.Mobject, left: manim.Mobject | np.ndarray = None, right: manim.Mobject | np.ndarray = None, **kwargs):
+    if isinstance(left, manim.Mobject):
+        left = left.get_right()
+    if isinstance(right, manim.Mobject):
+        right = right.get_left()
+    
+    if right is None:
+        shift = mobject.get_center() - left
+    elif left is None:
+        shift = mobject.get_center() - right
+    else:
+        shift = mobject.get_center() - (right + left) / 2
+    return manim.FadeIn(mobject, scale = 0, shift = shift, **kwargs)
+
+
+def shrink_between(mobject: manim.Mobject, left: manim.Mobject | np.ndarray = None, right: manim.Mobject | np.ndarray = None, **kwargs):
+    if isinstance(left, manim.Mobject):
+        left = left.get_right()
+    if isinstance(right, manim.Mobject):
+        right = right.get_left()
+    
+    if right is None:
+        shift = mobject.get_center() - left
+    elif left is None:
+        shift = mobject.get_center() - right
+    else:
+        shift = mobject.get_center() - (right + left) / 2
+    return manim.FadeOut(mobject, scale = 0, shift = -shift, **kwargs)
+
+
+def morph_text(
+    text_1: manim.Mobject,
+    text_2: manim.Mobject,
+    map: Union[dict, list],
+    ignore_1: list[int] = [],
+    ignore_2: list[int] = [],
+    **global_kwargs
+):
+    if type(map) == list: # If map is a list, convert it to a dict
+        new_map = {}
+        for i in range(len(map)):
+            if map[i] != None:
+                new_map[i] = map[i]
+        map = new_map
+        del new_map
+
+    len_1 = len(text_1)
+    len_2 = len(text_2)
+
+    # Parallel array representation of the map
+    processed_1 = list(map.keys())
+    processed_1.sort() # Just in case
+    processed_2 = []
+
+    animations = []
+    for key in map:
+        kwargs = {}
+        swap_index = map[key]
+        if type(map[key]) == list:
+            # If it maps to a list, then the first index is the int, and the second is some kwargs
+            swap_index = map[key][0]
+            kwargs = map[key][1]
+        processed_2.append(swap_index)
+        animations.append(manim.Transform(text_1[key], text_2[swap_index], **{**global_kwargs, **kwargs}))
+
+    last_processed = -1
+    for text_1_index in range(len_1):
+        if text_1_index in processed_1:
+            last_processed = processed_1.index(text_1_index)
+        elif text_1_index not in ignore_1:
+            last_text_2 = text_2[processed_2[last_processed]] if last_processed != -1 else None
+            next_text_2 = text_2[processed_2[last_processed + 1]] if last_processed + 1 < len(processed_1) else None
+            animations.append(shrink_between(text_1[text_1_index], last_text_2, next_text_2, **global_kwargs))
+    
+    last_processed = -1
+    for text_2_index in range(len_2):
+        if text_2_index in processed_2:
+            last_processed = processed_2.index(text_2_index)
+        elif text_2_index not in ignore_2:
+            last_text_1 = text_1[processed_1[last_processed]] if last_processed != -1 else None
+            next_text_1 = text_1[processed_1[last_processed + 1]] if last_processed + 1 < len(processed_2) else None
+            animations.append(grow_between(text_2[text_2_index], last_text_1, next_text_1, **global_kwargs))
+
+    return manim.AnimationGroup(*animations)
+
+
+
+
+def randomize_list(list):
+    for i in range(0, len(list)):
+        one_to_pick = random.randrange(i, len(list))
+        list[i], list[one_to_pick] = list[one_to_pick], list[i]
+
+
+
+
+def get_wait_function(scene: manim.Scene, map: list = None, show_numbers: bool = False, default_wait_time = 1):
+    if map == None: map = []
+    current_index = 0
+
+    def wait_function():
+        nonlocal current_index
+
+        try: wait_time = map[current_index]
+        except: wait_time = default_wait_time
+
+        if wait_time == 0:
+            current_index += 1
+            return
+
+        if show_numbers:
+            tex = manim.MathTex(str(current_index))
+            rect = manim.SurroundingRectangle(tex, manim.WHITE, fill_color = manim.BLACK, fill_opacity = 1)
+            obj = manim.VGroup(rect, tex).move_to(scene.camera.frame_center + manim.LEFT * scene.camera.frame_width/2 + manim.UP * scene.camera.frame_height/2, manim.UP + manim.LEFT)
+            scene.add(obj)
+
+        scene.wait(wait_time)
+
+        if show_numbers:
+            scene.remove(obj)
+        
+        current_index += 1
+    
+    return wait_function

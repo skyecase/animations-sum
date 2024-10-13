@@ -95,9 +95,9 @@ def align_baseline(*tex_objects: manim.Tex):
 
 
 def grow_between(mobject: manim.Mobject, left: manim.Mobject | np.ndarray = None, right: manim.Mobject | np.ndarray = None, **kwargs):
-    if isinstance(left, manim.Mobject):
+    if not isinstance(left, np.ndarray):
         left = left.get_right()
-    if isinstance(right, manim.Mobject):
+    if not isinstance(right, np.ndarray):
         right = right.get_left()
     
     if right is None:
@@ -110,9 +110,9 @@ def grow_between(mobject: manim.Mobject, left: manim.Mobject | np.ndarray = None
 
 
 def shrink_between(mobject: manim.Mobject, left: manim.Mobject | np.ndarray = None, right: manim.Mobject | np.ndarray = None, **kwargs):
-    if isinstance(left, manim.Mobject):
+    if not isinstance(left, np.ndarray):
         left = left.get_right()
-    if isinstance(right, manim.Mobject):
+    if not isinstance(right, np.ndarray):
         right = right.get_left()
     
     if right is None:

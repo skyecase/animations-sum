@@ -66,9 +66,6 @@ def fade_and_shift_out(mobject: manim.VMobject, shift: np.array = manim.ORIGIN, 
     return manim.UpdateFromAlphaFunc(mobject, update_func, rate_func = manim.linear, **kwargs)
 
 
-# purple = "#ff62fe"
-# purple_line = '#ff00f0'
-
 
 
 
@@ -182,14 +179,6 @@ def morph_text(
 
 
 
-def randomize_list(list):
-    for i in range(0, len(list)):
-        one_to_pick = random.randrange(i, len(list))
-        list[i], list[one_to_pick] = list[one_to_pick], list[i]
-
-
-
-
 def get_wait_function(scene: manim.Scene, map: list = None, show_numbers: bool = False, default_wait_time = 1):
     if map == None: map = []
     current_index = 0
@@ -218,3 +207,52 @@ def get_wait_function(scene: manim.Scene, map: list = None, show_numbers: bool =
         current_index += 1
     
     return wait_function
+
+
+
+
+
+
+def normalize_point_speed(points: list[np.array], segment_length = 0.1):
+    """
+    This function takes in points from a VMobject and returns a new points array
+    such that each line segment is (approximately) the same length.
+    This function assumes that everything is a line segment -- there are no curves.
+
+    Parameters:
+        points: list[np.array] - The points of the VMobject
+        segment_length[float] - The desired length of each segment
+    """
+    new_points = []
+    new_remaining_length = segment_length
+    new_start = points[0]
+    for i in range(int(len(points) / 4)):
+        start_point = points[4 * i]
+        end_point = points[4 * i + 3]
+        length = np.linalg.norm(end_point - start_point)
+        unit_vector = (end_point - start_point) / length
+        remaining_length = length
+
+        first_time = True
+        while remaining_length > new_remaining_length:
+            new_end = start_point + unit_vector * new_remaining_length if first_time else (new_start + unit_vector * segment_length)
+            first_time = False
+
+            new_points.append(new_start)
+            new_points.append(new_start * 2/3 + new_end * 1/3)
+            new_points.append(new_start * 1/3 + new_end * 2/3)
+            new_points.append(new_end)
+
+            remaining_length -= new_remaining_length
+            new_remaining_length = segment_length
+            new_start = new_end
+
+        new_remaining_length = new_remaining_length - remaining_length
+    
+    new_points.append(new_end)
+    new_points.append(new_end * 2/3 + points[-1] * 1/3)
+    new_points.append(new_end * 1/3 + points[-1] * 2/3)
+    new_points.append(points[-1])
+
+
+    return new_points

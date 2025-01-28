@@ -1,7 +1,8 @@
 from manim import *
 from math import sqrt, floor
+import math
 from modules.custom_mobjects import FullscreenAxes, create_axes
-from modules.helpers import normalize_point_speed
+from modules.helpers import normalize_point_speed, create_time_getter
 from modules.interpolation import bounce, cubic_out
 from numpy import sinc
 
@@ -19,6 +20,24 @@ def S(x):
 
 def f(x):
     return S(x) - S(x - 1)
+
+
+
+def half_sine(x, n=20):
+    if x == floor(x) and x <= 0 and x >= -n - 2:
+        return 0
+    total = 0
+    sign = 1
+    for i in range(0, n + 1):
+        total += sign / (x + i)
+        sign = -sign
+    total += 3/4 * sign/(x + n + 1)
+    total -= 1/4 * sign/(x + n + 2)
+    return 1 / (2 * total)
+
+def squiggles(x, t):
+    return half_sine(1 - x)*math.sin(x+t) + math.sin(PI*x)*(math.cos(x/4 - 1.6*t)*(math.sin(0.4 + t/2) + 1.2)/5 + math.sin(9*x + 3.48*t)*math.cos(2 + t)/12 + math.sin(20*x - t)*math.sin(t/3)/13)
+
 
 
 class ProblemIntroduction(Scene):
@@ -92,5 +111,22 @@ class ProblemIntroduction(Scene):
         self.play(Transform(s_curve, new_s_curve))
 
 
+        
+        solution_vt = ValueTracker(0)
+        squiggle_vt = ValueTracker(0)
+        get_time = create_time_getter(self)
+        def curve_function(x):
+            return sinc_fun(x)*(1-solution_vt.get_value()) + S(x)*solution_vt.get_value() + squiggles(x, get_time())*squiggle_vt.get_value()
+        def s_curve_updater(curve):
+            curve.become(ParametricFunction(lambda t: axes.coords_to_point(t, curve_function(t)), (-2, 13)).set_color(YELLOW))
+        s_curve.add_updater(s_curve_updater)
 
-        self.wait()
+        self.play(
+            solution_vt.animate.set_value(1),
+            squiggle_vt.animate.set_value(1),
+            run_time = 2,
+            rate_func = linear
+        )
+
+
+        self.wait(10)

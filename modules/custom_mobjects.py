@@ -89,24 +89,22 @@ def create_axes(scene: Scene, axes: FullscreenAxes):
         tick.save_state()
         tick.scale(0)
     
-    scene.play(
-        LaggedStart(
-            manim.AnimationGroup(
-                manim.Create(axes.x_line, rate_func=manim.linear, run_time=0.5),
-                LaggedStart(
-                    *[tick.animate(rate_func=cubic_out, run_time=0.5).restore() for tick in axes.x_ticks],
-                    lag_ratio=0.1
-                ),
-                lag_raio=0.4
+    return LaggedStart(
+        manim.AnimationGroup(
+            manim.Create(axes.x_line, rate_func=manim.linear, run_time=0.5),
+            LaggedStart(
+                *[tick.animate(rate_func=cubic_out, run_time=0.5).restore() for tick in axes.x_ticks],
+                lag_ratio=0.1
             ),
-            manim.AnimationGroup(
-                manim.Create(axes.y_line, rate_func=manim.linear, run_time=0.5 * scene.camera.frame_height / scene.camera.frame_width),
-                LaggedStart(
-                    *[tick.animate(rate_func=cubic_out, run_time=0.5).restore() for tick in axes.y_ticks],
-                    lag_ratio=0.1
-                ),
-                lag_ratio=0.4
+            lag_raio=0.4
+        ),
+        manim.AnimationGroup(
+            manim.Create(axes.y_line, rate_func=manim.linear, run_time=0.5 * scene.camera.frame_height / scene.camera.frame_width),
+            LaggedStart(
+                *[tick.animate(rate_func=cubic_out, run_time=0.5).restore() for tick in axes.y_ticks],
+                lag_ratio=0.1
             ),
-            lag_ratio=0.2
-        )
+            lag_ratio=0.4
+        ),
+        lag_ratio=0.2
     )

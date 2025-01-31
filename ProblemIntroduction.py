@@ -44,7 +44,7 @@ class ProblemIntroduction(Scene):
     def construct(self):
         axes = FullscreenAxes(self, 5.5*LEFT + 2.5*DOWN)
 
-        create_axes(self, axes)
+        self.play(create_axes(self, axes))
 
         f_text = MathTex("f(x)").move_to(DOWN + LEFT * 0.5)
         curve = ParametricFunction(lambda t: axes.coords_to_point(t, f(t)), (-2, 13)).set_color(RED)

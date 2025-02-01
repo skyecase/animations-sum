@@ -1,7 +1,7 @@
 from manim import *
 from modules.custom_mobjects import FullscreenAxes, create_axes
 from modules.interpolation import bounce, cubic_out, quadratic_out
-from modules.helpers import fade_and_shift_in, grow_between
+from modules.helpers import fade_and_shift_in, fade_and_shift_out
 import math
 
 class Recursive(Scene):
@@ -115,14 +115,69 @@ class Recursive(Scene):
             arrow.become(create_arrow(point_1.get_center(), point_2.get_center(), start_vt.get_value(), end_vt.get_value(), angle=PI/2))
         arrow.add_updater(arrow_updater)
 
+        addition_text = MathTex("+ f(2)").scale(0.8).move_to(axes.coords_to_point(1, f(1) + f(2)) + UP * 0.2, DOWN)
+
+
+        self.play(
+            end_vt.animate(rate_func=cubic_out).set_value(1),
+            FadeIn(point_2, scale=3, rate_func = bounce()),
+            fade_and_shift_in(addition_text, shift = UP, scale = 0)
+        )
+        self.play(
+            start_vt.animate.set_value(1),
+            fade_and_shift_out(addition_text, shift = UP * 0.7),
+            rate_func = cubic_out,
+        )
+        self.remove(arrow, addition_text)
+
+
+        point_3 = Dot(axes.coords_to_point(3, f(1) + f(2) + f(3)), 0.1, color=BLUE)
+
+        start_vt.set_value(0); end_vt.set_value(0)
+        arrow = VMobject()
+        self.add(start_vt, end_vt, arrow)
+
+        def arrow_updater(arrow: Arc):
+            arrow.become(create_arrow(point_2.get_center(), point_3.get_center(), start_vt.get_value(), end_vt.get_value(), angle=PI/2))
+        arrow.add_updater(arrow_updater)
+
+        addition_text = MathTex("+ f(3)").scale(0.8).move_to(axes.coords_to_point(2, f(1) + f(2) + f(3)) + UP * 0.2, DOWN)
+
+
+        self.play(
+            end_vt.animate(rate_func=cubic_out).set_value(1),
+            FadeIn(point_3, scale=3, rate_func = bounce()),
+            fade_and_shift_in(addition_text, shift = UP, scale = 0)
+        )
+        self.play(
+            start_vt.animate.set_value(1),
+            fade_and_shift_out(addition_text, shift = UP * 0.7),
+            rate_func = cubic_out,
+        )
+        self.remove(arrow, addition_text)
+
+
+
+        point_4 = Dot(axes.coords_to_point(4, f(1) + f(2) + f(3) + f(4)), 0.1, color=BLUE)
+        point_5 = Dot(axes.coords_to_point(5, f(1) + f(2) + f(3) + f(4) + f(5)), 0.1, color=BLUE)
+
+        asdf = ArrowThing(point_3.get_center(), point_4.get_center(), text="+f(4)")
+        self.add(asdf)
+        asdf2 = ArrowThing(point_4.get_center(), point_5.get_center(), text="+f(5)")
+        self.add(asdf2)
         self.play(
             LaggedStart(
-                end_vt.animate(rate_func=cubic_out).set_value(1),
-                FadeIn(point_2, scale=3, rate_func = bounce()),
-                lag_ratio = 0.0
+                    AnimationGroup(
+                        asdf.animation,
+                        FadeIn(point_4, scale=3, rate_func = bounce())
+                    ),
+                    AnimationGroup(
+                        asdf2.animation,
+                        FadeIn(point_5, scale=3, rate_func = bounce())
+                    ),
+                    lag_ratio = 0.4
             )
         )
-        self.play(start_vt.animate.set_value(1), rate_func = cubic_out)
 
 
 
@@ -140,10 +195,10 @@ def create_arrow(target_start, target_end, start=0, end=1, buff = 0.15, angle=PI
     angle_to_move = (end - start) * (2*modified_buff - angle)
 
 
-    LENGTH_THRESHOLD = 0.2 # 0.6
+    LENGTH_THRESHOLD = 0.6
     length = abs(angle_to_move * radius)
     size_modifier = 1 if length >= LENGTH_THRESHOLD else length / LENGTH_THRESHOLD
-    # size_modifier = cubic_out(size_modifier)
+    size_modifier = cubic_out(size_modifier)
 
     stroke_width = DEFAULT_STROKE_WIDTH * size_modifier
 
@@ -157,10 +212,45 @@ def create_arrow(target_start, target_end, start=0, end=1, buff = 0.15, angle=PI
 
     arc = Arc(radius, start_angle, angle_to_move + take_back_length/radius, arc_center=center, stroke_width=stroke_width)
     arc.tip = tip
+    arc.set_cap_style(CapStyleType.BUTT)
     arc.add(tip)
 
     return arc
 
 
-def custom_add_tip(mobj: TipableVMobject, size):
-    mobj.create_tip(tip_length=size, tip_width=size)
+
+class ArrowThing(VMobject):
+    def __init__(self, start_pos, end_pos, angle=PI/2, text=None):
+        super().__init__()
+        self.start_vt = ValueTracker(0)
+        self.end_vt = ValueTracker(0)
+        self.arrow = VMobject()
+        self.has_text = text != None
+        if self.has_text:
+            self.text = VMobject()
+            self.text_pos_vt = ValueTracker(0)
+            self.text_opacity_vt = ValueTracker(1)
+            self.text_scale_vt = ValueTracker(0)
+
+        self.add(self.arrow)
+        if self.has_text: self.add(self.text)
+        
+        def arrow_updater(mobject: ArrowThing):
+            mobject.arrow.become(create_arrow(start_pos, end_pos, self.start_vt.get_value(), self.end_vt.get_value(), angle=angle))
+            if mobject.has_text:
+                mobject.text.become(MathTex(text).scale(0.7).move_to((start_pos + end_pos) / 2 + UP *(0.2 + mobject.text_pos_vt.get_value()), DOWN))
+                mobject.text.scale(mobject.text_scale_vt.get_value())
+                mobject.text.set_opacity(mobject.text_opacity_vt.get_value())
+        self.add_updater(arrow_updater)
+
+        self.animation = AnimationGroup(
+            LaggedStart(
+                self.end_vt.animate(rate_func = cubic_out).set_value(1),
+                self.start_vt.animate(rate_func = cubic_out).set_value(1),
+                lag_ratio = 0.5),
+            self.text_pos_vt.animate(rate_func=linear, run_time=1.5).set_value(0.5),
+            LaggedStart(
+                self.text_scale_vt.animate(rate_func=cubic_out, run_time=1.5).set_value(1),
+                self.text_opacity_vt.animate(rate_func=linear, run_time=1).set_value(0),
+                lag_ratio = 0.3333)
+        )

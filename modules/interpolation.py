@@ -1,4 +1,5 @@
 from numpy import sqrt, log, floor
+import numpy as np
 
 def flip(rate_func):
     return lambda x: 1 - rate_func(1 - x)
@@ -41,3 +42,13 @@ def bounce_from_bottom(restitution = 1/9):
         power = floor(2 * log(1 - x) / log(restitution))
         return restitution ** power - (((x - 1) * 2 / (1 + sqrt_restitution) + restitution ** (power / 2)) * (1 + sqrt_restitution) / (1 - sqrt_restitution)) ** 2
     return func_to_return
+
+
+def sin_smooth_in(linearity = 0):
+    if linearity == 0:
+        return lambda x: (1 - np.cos(np.pi * x)) / 2
+    a = np.sqrt(linearity * (2 - linearity))
+    return lambda x: 1 - np.arcsin(a * np.cos(np.pi/2 * x)) / np.arcsin(a)
+
+def sin_smooth_out(linearity = 0): return flip(sin_smooth_in(linearity))
+def sin_smooth_in_out(linearity = 0): return in_out(sin_smooth_in(linearity))

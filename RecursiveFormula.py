@@ -1,5 +1,5 @@
 from manim import *
-from modules.custom_mobjects import FullscreenAxes, create_axes
+from modules.custom_mobjects import FullscreenAxes, create_axes, create_arrow, CustomArrow
 from modules.interpolation import bounce, cubic_out, quadratic_out
 from modules.helpers import fade_and_shift_in, fade_and_shift_out, morph_text
 import math
@@ -167,7 +167,7 @@ class Recursive(Scene):
 
 
         right_points = [point_3] + [Dot(axes.coords_to_point(i, S(i)), 0.1, color=BLUE) for i in range(4, 12)]
-        arrow_things = [None] + [ArrowThing(right_points[i-1].get_center(),
+        arrow_things = [None] + [CustomArrow(right_points[i-1].get_center(),
                                             right_points[i].get_center(),
                                             text=MathTex("+f(" + str(i+3) + ")").scale(0.7).move_to(UP*0.2,  DOWN))
                                     for i in range(1, len(right_points))]
@@ -280,7 +280,7 @@ class Recursive(Scene):
             FadeIn(s_text, scale=0, shift=UP * 0.4)
         )
 
-        arrow = ArrowThing(right_points[1].get_center(), point_3.get_center(), angle=PI*3/4, text=MathTex("- f(4)").scale(0.7).move_to(DOWN*0.4, UP))
+        arrow = CustomArrow(right_points[1].get_center(), point_3.get_center(), angle=PI*3/4, text=MathTex("- f(4)").scale(0.7).move_to(DOWN*0.4, UP))
         self.add(arrow)
 
         self.play(
@@ -292,7 +292,7 @@ class Recursive(Scene):
 
 
         arrow_things = [
-            ArrowThing(axes.coords_to_point(i, S(i)),
+            CustomArrow(axes.coords_to_point(i, S(i)),
                        axes.coords_to_point(i-1, S(i-1)),
                        text=MathTex("-f(" + str(i) + ")").scale(0.7).move_to(DOWN*0.3 + (RIGHT if i > 0 else LEFT)*0.1,  UP))
                 for i in reversed(range(-5, 4))]
@@ -363,7 +363,7 @@ class Recursive(Scene):
 
         new_right_points = [free_point] + [Dot(axes.coords_to_point(3.5 + i, real_S(3.5 + i)), 0.1, color=YELLOW) for i in range(1, 8)]
         right_arrow_things = [
-            ArrowThing(new_right_points[i].get_center(),
+            CustomArrow(new_right_points[i].get_center(),
                        new_right_points[i+1].get_center(),
                        angle = PI*3/4)
             for i in range(0, len(new_right_points) - 1)
@@ -379,7 +379,7 @@ class Recursive(Scene):
 
         new_left_points = [free_point] + [Dot(axes.coords_to_point(3.5 + i, real_S(3.5 + i)), 0.1, color=YELLOW) for i in reversed(range(-10, 0))]
         left_arrow_things = [
-            ArrowThing(new_left_points[i].get_center(),
+            CustomArrow(new_left_points[i].get_center(),
                        new_left_points[i+1].get_center(),
                        angle = PI*3/4)
             for i in range(0, len(new_left_points) - 1)
@@ -409,85 +409,3 @@ class Recursive(Scene):
                 lag_ratio = 0.3
             )
         )
-        
-
-
-
-def create_arrow(target_start, target_end, start=0, end=1, buff = 0.15, angle=PI*3/4):
-    diff = target_end - target_start
-    distance = math.sqrt(np.dot(diff, diff))
-    radius = distance / (2*math.sin(angle/2))
-    center = (target_start + target_end)/2 + normalize(np.array((diff[1], -diff[0], 0))) * radius*math.cos(angle/2)
-
-    angle_to_target_start = angle_of_vector(target_start - center)
-
-    modified_buff = buff / radius
-    start_angle = (angle_to_target_start - modified_buff) * (1 - start) + (angle_to_target_start - angle + modified_buff) * start
-    angle_to_move = (end - start) * (2*modified_buff - angle)
-
-
-    LENGTH_THRESHOLD = 0.6
-    length = abs(angle_to_move * radius)
-    size_modifier = 1 if length >= LENGTH_THRESHOLD else length / LENGTH_THRESHOLD
-    size_modifier = cubic_out(size_modifier)
-
-    stroke_width = DEFAULT_STROKE_WIDTH * size_modifier
-
-    tip_size = 0.2 * size_modifier
-
-    untipped_arc = Arc(radius, start_angle, angle_to_move, arc_center=center)
-    untipped_arc.add_tip(tip_length = tip_size, tip_width = tip_size)
-    tip = untipped_arc.tip
-
-    take_back_length = 1/3 * stroke_width/100 + 2/3 * tip_size
-
-    arc = Arc(radius, start_angle, angle_to_move + take_back_length/radius, arc_center=center, stroke_width=stroke_width)
-    arc.tip = tip
-    arc.set_cap_style(CapStyleType.BUTT)
-    arc.add(tip)
-
-    return arc
-
-
-
-class ArrowThing(VMobject):
-    def __init__(self, start_pos, end_pos, angle=PI/2, text: VMobject = None):
-        super().__init__()
-        self.start_vt = ValueTracker(0)
-        self.end_vt = ValueTracker(0)
-        self.arrow = VMobject()
-        self.set_text(text)
-        self.text_pos_vt = ValueTracker(0)
-        self.text_opacity_vt = ValueTracker(1)
-        self.text_scale_vt = ValueTracker(0)
-
-        self.add(self.arrow)
-        
-        def arrow_updater(mobject: ArrowThing):
-            mobject.arrow.become(create_arrow(start_pos, end_pos, self.start_vt.get_value(), self.end_vt.get_value(), angle=angle))
-            if mobject.has_text:
-                direction = UP if (end_pos[0] - start_pos[0])*angle >= 0 else DOWN
-                mobject.text.become(mobject.original_text)
-                mobject.text.shift((start_pos + end_pos) / 2 + direction * mobject.text_pos_vt.get_value())
-                mobject.text.scale(mobject.text_scale_vt.get_value())
-                mobject.text.set_opacity(mobject.text_opacity_vt.get_value())
-        self.add_updater(arrow_updater)
-
-        self.animation = AnimationGroup(
-            LaggedStart(
-                self.end_vt.animate(rate_func = cubic_out).set_value(1),
-                self.start_vt.animate(rate_func = cubic_out).set_value(1),
-                lag_ratio = 0.5),
-            self.text_pos_vt.animate(rate_func=linear, run_time=1.5).set_value(0.5),
-            LaggedStart(
-                self.text_scale_vt.animate(rate_func=cubic_out, run_time=1.5).set_value(1),
-                self.text_opacity_vt.animate(rate_func=linear, run_time=1).set_value(0),
-                lag_ratio = 0.3333)
-        )
-    
-    def set_text(self, text: VMobject = None):
-        self.has_text = text != None
-        if self.has_text:
-            self.original_text = text.copy()
-            self.text = VMobject()
-            self.add(self.text)

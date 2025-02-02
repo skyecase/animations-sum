@@ -70,20 +70,6 @@ class FullscreenAxes(VGroup):
         super().become(mobj)
 
 
-class CreateFullscreenAxes(manim.Animation):
-    def __init__(self, axes: FullscreenAxes, **kwargs):
-        self.axes = axes
-        super().__init__(self, **kwargs)
-    
-    def begin(self):
-        self.interpolate(0)
-
-    def interpolate(self, alpha):
-        time = alpha
-
-        self.axes.x_line.points
-
-
 def create_axes(scene: Scene, axes: FullscreenAxes):
     for tick in [*axes.x_ticks, *axes.y_ticks]:
         tick.save_state()
@@ -108,3 +94,82 @@ def create_axes(scene: Scene, axes: FullscreenAxes):
         ),
         lag_ratio=0.2
     )
+
+
+def create_arrow(target_start, target_end, start=0, end=1, buff = 0.15, angle=manim.PI*3/4):
+    diff = target_end - target_start
+    distance = math.sqrt(np.dot(diff, diff))
+    radius = distance / (2*math.sin(angle/2))
+    center = (target_start + target_end)/2 + manim.normalize(np.array((diff[1], -diff[0], 0))) * radius*math.cos(angle/2)
+
+    angle_to_target_start = manim.angle_of_vector(target_start - center)
+
+    modified_buff = buff / radius
+    start_angle = (angle_to_target_start - modified_buff) * (1 - start) + (angle_to_target_start - angle + modified_buff) * start
+    angle_to_move = (end - start) * (2*modified_buff - angle)
+
+
+    LENGTH_THRESHOLD = 0.6
+    length = abs(angle_to_move * radius)
+    size_modifier = 1 if length >= LENGTH_THRESHOLD else length / LENGTH_THRESHOLD
+    size_modifier = cubic_out(size_modifier)
+
+    stroke_width = DEFAULT_STROKE_WIDTH * size_modifier
+
+    tip_size = 0.2 * size_modifier
+
+    untipped_arc = manim.Arc(radius, start_angle, angle_to_move, arc_center=center)
+    untipped_arc.add_tip(tip_length = tip_size, tip_width = tip_size)
+    tip = untipped_arc.tip
+
+    take_back_length = 1/3 * stroke_width/100 + 2/3 * tip_size
+
+    arc = manim.Arc(radius, start_angle, angle_to_move + take_back_length/radius, arc_center=center, stroke_width=stroke_width)
+    arc.tip = tip
+    arc.set_cap_style(manim.CapStyleType.BUTT)
+    arc.add(tip)
+
+    return arc
+
+
+class CustomArrow(manim.VMobject):
+    def __init__(self, start_pos, end_pos, angle=manim.PI/2, text: manim.VMobject = None):
+        super().__init__()
+        self.start_vt = manim.ValueTracker(0)
+        self.end_vt = manim.ValueTracker(0)
+        self.arrow = manim.VMobject()
+        self.set_text(text)
+        self.text_pos_vt = manim.ValueTracker(0)
+        self.text_opacity_vt = manim.ValueTracker(1)
+        self.text_scale_vt = manim.ValueTracker(0)
+
+        self.add(self.arrow)
+        
+        def arrow_updater(mobject: CustomArrow):
+            mobject.arrow.become(create_arrow(start_pos, end_pos, self.start_vt.get_value(), self.end_vt.get_value(), angle=angle))
+            if mobject.has_text:
+                direction = UP if (end_pos[0] - start_pos[0])*angle >= 0 else manim.DOWN
+                mobject.text.become(mobject.original_text)
+                mobject.text.shift((start_pos + end_pos) / 2 + direction * mobject.text_pos_vt.get_value())
+                mobject.text.scale(mobject.text_scale_vt.get_value())
+                mobject.text.set_opacity(mobject.text_opacity_vt.get_value())
+        self.add_updater(arrow_updater)
+
+        self.animation = manim.AnimationGroup(
+            LaggedStart(
+                self.end_vt.animate(rate_func = cubic_out).set_value(1),
+                self.start_vt.animate(rate_func = cubic_out).set_value(1),
+                lag_ratio = 0.5),
+            self.text_pos_vt.animate(rate_func=manim.linear, run_time=1.5).set_value(0.5),
+            LaggedStart(
+                self.text_scale_vt.animate(rate_func=cubic_out, run_time=1.5).set_value(1),
+                self.text_opacity_vt.animate(rate_func=manim.linear, run_time=1).set_value(0),
+                lag_ratio = 0.3333)
+        )
+    
+    def set_text(self, text: manim.VMobject = None):
+        self.has_text = text != None
+        if self.has_text:
+            self.original_text = text.copy()
+            self.text = manim.VMobject()
+            self.add(self.text)

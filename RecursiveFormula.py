@@ -75,7 +75,10 @@ class Recursive(Scene):
         
         def S(n):
             total = 0
-            for i in range(1, n+1): total += f(i)
+            if n > 0:
+                for i in range(1, n+1): total += f(i)
+            if n < 0:
+                for i in range(n, 0): total -= f(i)
             return total
 
 
@@ -166,7 +169,7 @@ class Recursive(Scene):
         right_points = [point_3] + [Dot(axes.coords_to_point(i, S(i)), 0.1, color=BLUE) for i in range(4, 12)]
         arrow_things = [None] + [ArrowThing(right_points[i-1].get_center(),
                                             right_points[i].get_center(),
-                                            text=MathTex("+f(" + str(i+3) + ")").scale(0.7).move_to(ORIGIN,  DOWN))
+                                            text=MathTex("+f(" + str(i+3) + ")").scale(0.7).move_to(UP*0.2,  DOWN))
                                     for i in range(1, len(right_points))]
 
         self.add(*arrow_things[1:])
@@ -268,6 +271,69 @@ class Recursive(Scene):
             )
         )
 
+
+
+        s_text = MathTex("S(4)").scale(0.8).move_to(right_points[1].get_center() + UP * 0.4, DOWN)
+
+        self.play(
+            right_points[1].animate.scale(1.5),
+            FadeIn(s_text, scale=0, shift=UP * 0.4)
+        )
+
+        arrow = ArrowThing(right_points[1].get_center(), point_3.get_center(), angle=PI*3/4, text=MathTex("- f(4)").scale(0.7).move_to(DOWN*0.4, UP))
+        self.add(arrow)
+
+        self.play(
+            right_points[1].animate(rate_func=bounce()).scale(1/1.5),
+            arrow.animation,
+            fade_and_shift_out(s_text, UP)
+        )
+
+
+
+        arrow_things = [
+            ArrowThing(axes.coords_to_point(i, S(i)),
+                       axes.coords_to_point(i-1, S(i-1)),
+                       text=MathTex("-f(" + str(i) + ")").scale(0.7).move_to(DOWN*0.3 + (RIGHT if i > 0 else LEFT)*0.1,  UP))
+                for i in reversed(range(-5, 4))]
+        self.add(*arrow_things)
+
+        self.play(
+            LaggedStart(
+                *[arrow_thing.animation for arrow_thing in arrow_things[:2]],
+                lag_ratio = 0.3,
+            )
+        )
+
+        left_points = [Dot(axes.coords_to_point(i, S(i)), 0.1, color=BLUE) for i in reversed(range(-6, 1))]
+
+        self.play(
+            arrow_things[2].animation,
+            FadeIn(left_points[0], scale = 3, rate_func=bounce())
+        )
+        self.play(
+            arrow_things[3].animation,
+            FadeIn(left_points[1], scale = 3, rate_func=bounce())
+        )
+
+        self.play(
+            LaggedStart(
+                *[
+                    AnimationGroup(
+                        arrow_things[i+2].animation,
+                        FadeIn(left_points[i], scale = 3, rate_func=bounce())
+                    )
+                    for i in range(2, len(left_points))
+                ],
+                lag_ratio=0.3
+            )
+        )
+        self.remove(*arrow_things)
+
+        # ==============================
+        # FREE POINT
+        # ==============================
+
         self.wait()
 
 
@@ -329,8 +395,9 @@ class ArrowThing(VMobject):
         def arrow_updater(mobject: ArrowThing):
             mobject.arrow.become(create_arrow(start_pos, end_pos, self.start_vt.get_value(), self.end_vt.get_value(), angle=angle))
             if mobject.has_text:
+                direction = UP if (end_pos[0] - start_pos[0])*angle >= 0 else DOWN
                 mobject.text.become(self.original_text)
-                mobject.text.shift((start_pos + end_pos) / 2 + UP *(0.2 + mobject.text_pos_vt.get_value()))
+                mobject.text.shift((start_pos + end_pos) / 2 + direction * mobject.text_pos_vt.get_value())
                 mobject.text.scale(mobject.text_scale_vt.get_value())
                 mobject.text.set_opacity(mobject.text_opacity_vt.get_value())
         self.add_updater(arrow_updater)

@@ -78,7 +78,7 @@ class Recursive(Scene):
             if n > 0:
                 for i in range(1, n+1): total += f(i)
             if n < 0:
-                for i in range(n, 0): total -= f(i)
+                for i in range(n+1, 1): total -= f(i)
             return total
 
 
@@ -330,11 +330,86 @@ class Recursive(Scene):
         )
         self.remove(*arrow_things)
 
+
         # ==============================
         # FREE POINT
         # ==============================
 
-        self.wait()
+        def S_from_starting_point(initial_x, initial_y, offset):
+            total = initial_y
+            if offset > 0:
+                for i in range(1, offset+1): total += f(initial_x + i)
+            if offset < 0:
+                for i in range(offset, 0): total -= f(initial_x + i)
+            return total
+    
+        def real_S(x, n=100):
+            total = 0
+            for i in range(1, n+1):
+                total += f(i) - f(x + i)
+            total += x * f(n + 1) + x*(x+1)/2 * (f(n + 2) - f(n + 1))
+            return total
+                                                 
+
+
+        free_point = Dot(axes.coords_to_point(3.5, real_S(3.5)), 0.14, color=YELLOW)
+        s_x_text = MathTex("S(x)").scale(0.8).move_to(free_point.get_center() + UP*0.2 +LEFT*0.4, DOWN + RIGHT)
+
+        self.play(
+            FadeIn(free_point, scale = 3, rate_func = bounce()),
+            FadeIn(s_x_text, scale=0, shift = (s_x_text.get_center() - free_point.get_center()) * 0.5),
+            text.animate.set_color(WHITE)
+        )
+
+        new_right_points = [free_point] + [Dot(axes.coords_to_point(3.5 + i, real_S(3.5 + i)), 0.1, color=YELLOW) for i in range(1, 8)]
+        right_arrow_things = [
+            ArrowThing(new_right_points[i].get_center(),
+                       new_right_points[i+1].get_center(),
+                       angle = PI*3/4)
+            for i in range(0, len(new_right_points) - 1)
+        ]
+        right_arrow_things[0].set_text(MathTex("+ f(x + 1)").scale(0.7).move_to(UP * 0.2, DOWN))
+        self.add(*right_arrow_things)
+
+        self.play(
+            FadeIn(new_right_points[1], scale = 3, rate_func = bounce()),
+            right_arrow_things[0].animation
+        )
+
+
+        new_left_points = [free_point] + [Dot(axes.coords_to_point(3.5 + i, real_S(3.5 + i)), 0.1, color=YELLOW) for i in reversed(range(-10, 0))]
+        left_arrow_things = [
+            ArrowThing(new_left_points[i].get_center(),
+                       new_left_points[i+1].get_center(),
+                       angle = PI*3/4)
+            for i in range(0, len(new_left_points) - 1)
+        ]
+        left_arrow_things[0].set_text(MathTex("- f(x)").scale(0.7).move_to(DOWN * 0.4, UP))
+        self.add(*left_arrow_things)
+        self.play(
+            FadeIn(new_left_points[1], scale = 3, rate_func = bounce()),
+            left_arrow_things[0].animation
+        )
+
+
+        animation_groups = []
+        for i in range(1, max(len(left_arrow_things), len(right_arrow_things))):
+            new_animation_group = []
+            if (i < len(left_arrow_things)):
+                new_animation_group.append(left_arrow_things[i].animation)
+                new_animation_group.append(FadeIn(new_left_points[i+1], scale=3, rate_func=bounce()))
+            if (i < len(right_arrow_things)):
+                new_animation_group.append(right_arrow_things[i].animation)
+                new_animation_group.append(FadeIn(new_right_points[i+1], scale=3, rate_func=bounce()))
+            animation_groups.append(AnimationGroup(*new_animation_group))
+        
+        self.play(
+            LaggedStart(
+                *animation_groups,
+                lag_ratio = 0.3
+            )
+        )
+        
 
 
 
@@ -381,22 +456,18 @@ class ArrowThing(VMobject):
         self.start_vt = ValueTracker(0)
         self.end_vt = ValueTracker(0)
         self.arrow = VMobject()
-        self.has_text = text != None
-        if self.has_text:
-            self.original_text = text.copy()
-            self.text = VMobject()
-            self.text_pos_vt = ValueTracker(0)
-            self.text_opacity_vt = ValueTracker(1)
-            self.text_scale_vt = ValueTracker(0)
+        self.set_text(text)
+        self.text_pos_vt = ValueTracker(0)
+        self.text_opacity_vt = ValueTracker(1)
+        self.text_scale_vt = ValueTracker(0)
 
         self.add(self.arrow)
-        if self.has_text: self.add(self.text)
         
         def arrow_updater(mobject: ArrowThing):
             mobject.arrow.become(create_arrow(start_pos, end_pos, self.start_vt.get_value(), self.end_vt.get_value(), angle=angle))
             if mobject.has_text:
                 direction = UP if (end_pos[0] - start_pos[0])*angle >= 0 else DOWN
-                mobject.text.become(self.original_text)
+                mobject.text.become(mobject.original_text)
                 mobject.text.shift((start_pos + end_pos) / 2 + direction * mobject.text_pos_vt.get_value())
                 mobject.text.scale(mobject.text_scale_vt.get_value())
                 mobject.text.set_opacity(mobject.text_opacity_vt.get_value())
@@ -413,3 +484,10 @@ class ArrowThing(VMobject):
                 self.text_opacity_vt.animate(rate_func=linear, run_time=1).set_value(0),
                 lag_ratio = 0.3333)
         )
+    
+    def set_text(self, text: VMobject = None):
+        self.has_text = text != None
+        if self.has_text:
+            self.original_text = text.copy()
+            self.text = VMobject()
+            self.add(self.text)

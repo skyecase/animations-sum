@@ -1,7 +1,7 @@
 from manim import *
 from modules.custom_mobjects import FullscreenAxes, create_arrow, create_axes, CustomArrow
 from modules.helpers import fade_and_shift_out, normalize_point_speed, fade_and_shift_in, create_updater_container
-from modules.interpolation import bounce, cubic_out
+from modules.interpolation import bounce, cubic_out, sin_smooth_in
 
 
 class Reciprocal(MovingCameraScene):
@@ -123,3 +123,67 @@ class Reciprocal(MovingCameraScene):
         line = Line(8*LEFT, 8*RIGHT).set_color(YELLOW)
         line.set_z_index(-1)
         self.play(Create(line), rate_func=cubic_out)
+
+
+
+class Logarithm(MovingCameraScene):
+    def construct(self):
+        u = create_updater_container(self)
+
+        AXIS_SCALE = 0.8
+        axis_start = ValueTracker(-5.5) # screen space position of axis origin x coordinate
+
+        def make_axes():
+            vertical_offset = -np.log((7 - axis_start.get_value())/AXIS_SCALE) * AXIS_SCALE
+            return FullscreenAxes(self, axis_start.get_value()*RIGHT + vertical_offset*UP, [AXIS_SCALE, AXIS_SCALE])
+        
+        axes = make_axes()
+
+
+        curve = ParametricFunction(lambda t: axes.coords_to_point(t, max(np.log(t), -3.5)), [0.01, 17.1]).set_color(RED)
+        curve.set_points(normalize_point_speed(curve.points))
+        text = MathTex("f(x) = \ln(x)").move_to(LEFT * 3 + UP * 1.5)
+
+        self.play(
+            LaggedStart(
+                Write(text),
+                create_axes(self, axes),
+                Create(curve, rate_func=lambda t: (t + t**2)/2),
+                lag_ratio=0.3
+            )
+        )
+
+        flatten_text = Tex("$f(x)$ flattens out.").scale(0.8).move_to(6.5*RIGHT + UP*.5, RIGHT)
+        flatten_text.set_z_index(2)
+
+        self.play(
+            Write(flatten_text)
+        )
+
+
+        def axes_updater(_):
+            axes.become(make_axes())
+        u.add_updater(axes_updater)
+
+        def curve_updater(_):
+            left_bound = max(0.01, axes.point_to_coords(LEFT * 7.5)[0])
+            right_bound = axes.point_to_coords(RIGHT * 7.5)[0]
+            curve.become(ParametricFunction(lambda t: axes.coords_to_point(t, np.log(t)), [left_bound, right_bound]).set_color(RED))
+        u.add_updater(curve_updater)
+
+
+
+        black_fade = Square(20, color=BLACK, fill_opacity=1)
+        black_fade.set_z_index(1)
+
+        self.play(
+            LaggedStart(
+                axis_start.animate(run_time = 8, rate_func = sin_smooth_in(0.8)).set_value(-50),
+                LaggedStart(
+                    FadeIn(black_fade, rate_func=linear),
+                    flatten_text.animate.move_to(UP * 3).scale(1/0.8),
+                    lag_ratio = 0.5
+                ),
+                lag_ratio = 0.8
+            )
+        )

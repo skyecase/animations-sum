@@ -96,21 +96,27 @@ def create_axes(scene: Scene, axes: FullscreenAxes):
     )
 
 
-def create_arrow(target_start, target_end, start=0, end=1, buff = 0.15, angle=manim.PI*3/4):
+def create_arrow(
+    target_start, # Point which arrow comes from
+    target_end, # Point which arrow points to
+    start=0, # Start point along arc (lerp from 0 to 1)
+    end=1, # Start point along arc (lerp from 0 to 1)
+    buff = 0.15, # Distance to separate arrow from target_start and target_end
+    angle=manim.PI*3/4 # How much does it curve? Positive = clockwise
+):
     diff = target_end - target_start
     distance = math.sqrt(np.dot(diff, diff))
-    radius = distance / (2*math.sin(angle/2))
-    center = (target_start + target_end)/2 + manim.normalize(np.array((diff[1], -diff[0], 0))) * radius*math.cos(angle/2)
-
+    signed_radius = distance / (2*math.sin(angle/2)) # Negative if counterclockwise
+    center = (target_start + target_end)/2 + manim.normalize(np.array((diff[1], -diff[0], 0))) * signed_radius*math.cos(angle/2)
     angle_to_target_start = manim.angle_of_vector(target_start - center)
 
-    modified_buff = buff / radius
+    modified_buff = buff / signed_radius
     start_angle = (angle_to_target_start - modified_buff) * (1 - start) + (angle_to_target_start - angle + modified_buff) * start
     angle_to_move = (end - start) * (2*modified_buff - angle)
 
 
     LENGTH_THRESHOLD = 0.6
-    length = abs(angle_to_move * radius)
+    length = abs(angle_to_move * signed_radius)
     size_modifier = 1 if length >= LENGTH_THRESHOLD else length / LENGTH_THRESHOLD
     size_modifier = cubic_out(size_modifier)
 
@@ -118,13 +124,13 @@ def create_arrow(target_start, target_end, start=0, end=1, buff = 0.15, angle=ma
 
     tip_size = 0.2 * size_modifier
 
-    untipped_arc = manim.Arc(radius, start_angle, angle_to_move, arc_center=center)
+    untipped_arc = manim.Arc(abs(signed_radius), start_angle, angle_to_move, arc_center=center)
     untipped_arc.add_tip(tip_length = tip_size, tip_width = tip_size)
     tip = untipped_arc.tip
 
     take_back_length = 1/3 * stroke_width/100 + 2/3 * tip_size
 
-    arc = manim.Arc(radius, start_angle, angle_to_move + take_back_length/radius, arc_center=center, stroke_width=stroke_width)
+    arc = manim.Arc(abs(signed_radius), start_angle, angle_to_move + take_back_length/signed_radius, arc_center=center, stroke_width=stroke_width)
     arc.tip = tip
     arc.set_cap_style(manim.CapStyleType.BUTT)
     arc.add(tip)

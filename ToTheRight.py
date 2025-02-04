@@ -152,12 +152,15 @@ class Logarithm(MovingCameraScene):
                 lag_ratio=0.3
             )
         )
+        self.add(axes) # This is important!
+        self.add(curve) # Fixes wrong ordering caused by previous line.
+
 
         flatten_text = Tex("$f(x)$ flattens out.").scale(0.8).move_to(6.5*RIGHT + UP*.5, RIGHT)
         flatten_text.set_z_index(2)
 
         self.play(
-            Write(flatten_text)
+            Write(flatten_text, run_time = 1)
         )
 
 
@@ -176,14 +179,111 @@ class Logarithm(MovingCameraScene):
         black_fade = Square(20, color=BLACK, fill_opacity=1)
         black_fade.set_z_index(1)
 
+
+        dot_1 = Dot(DOWN * 3, 0.12, color=BLUE)
+        dot_1.set_z_index(2)
+
+        s_text = MathTex("S(n)").move_to(dot_1.get_center() + RIGHT, LEFT)
+        s_text.set_z_index(2)
+
+        s_arrow = Arrow(s_text.get_left(), dot_1.get_center())
+        s_arrow.set_z_index(2)
+
+
         self.play(
             LaggedStart(
                 axis_start.animate(run_time = 8, rate_func = sin_smooth_in(0.8)).set_value(-50),
                 LaggedStart(
-                    FadeIn(black_fade, rate_func=linear),
-                    flatten_text.animate.move_to(UP * 3).scale(1/0.8),
+                    FadeIn(black_fade, rate_func=linear, run_time=1.5),
+                    flatten_text.animate.move_to(DOWN * 2.5 + LEFT * 4).scale(1/0.8),
+                    AnimationGroup(
+                        FadeIn(dot_1, scale=3, rate_func=bounce()),
+                        fade_and_shift_in(VGroup(s_text, s_arrow), LEFT)
+                    ),
                     lag_ratio = 0.5
                 ),
-                lag_ratio = 0.8
+                lag_ratio = 0.75
             )
         )
+
+
+
+        # I know there are only 2 updaters
+        u.remove_updater_index(0); u.remove_updater_index(0)
+        self.remove(*axes, curve, text, black_fade)
+
+
+        DOT_SPACING = 1.75
+        dot_2 = Dot(DOWN + RIGHT*DOT_SPACING, 0.12, color=BLUE)
+        dot_3 = Dot(UP + RIGHT*DOT_SPACING*2, 0.12, color=BLUE)
+        dot_4 = Dot(3*UP + RIGHT*DOT_SPACING*3, 0.12, color=BLUE)
+
+
+        arrow_1 = CustomArrow(dot_1.get_center(), dot_2.get_center(), buff=0.25)
+        arrow_2 = CustomArrow(dot_2.get_center(), dot_3.get_center(), buff=0.25)
+        arrow_3 = CustomArrow(dot_3.get_center(), dot_4.get_center(), buff=0.25)
+        self.add(arrow_1, arrow_2, arrow_3)
+
+        text_1 = MathTex("+ f(n + 1)").scale(0.8).move_to(dot_1.get_center() + UP*1.6 + LEFT*0.75)
+        text_2 = MathTex("+ f(n + 2)").scale(0.8).move_to(dot_2.get_center() + UP*1.6 + LEFT*0.75)
+        text_3 = MathTex("+ f(n + 3)").scale(0.8).move_to(dot_3.get_center() + UP*1.6 + LEFT*0.75)
+
+        self.play(
+            LaggedStart(
+                AnimationGroup(
+                    arrow_1.end_vt.animate(rate_func=cubic_out).set_value(1),
+                    fade_and_shift_in(text_1, scale=0, shift = text_1.get_center() - dot_1.get_center())
+                ),
+                FadeIn(dot_2, scale=3, rate_func=bounce()),
+                AnimationGroup(
+                    arrow_2.end_vt.animate(rate_func=cubic_out).set_value(1),
+                    fade_and_shift_in(text_2, scale=0, shift = text_2.get_center() - dot_2.get_center())
+                ),
+                FadeIn(dot_3, scale=3, rate_func=bounce()),
+                AnimationGroup(
+                    arrow_3.end_vt.animate(rate_func=cubic_out).set_value(1),
+                    fade_and_shift_in(text_3, scale=0, shift = text_3.get_center() - dot_3.get_center())
+                ),
+                FadeIn(dot_4, scale=3, rate_func=bounce()),
+                lag_ratio=0.333
+            )
+        )
+
+
+        same_text = Tex("Petty much\\\\the same!").move_to(LEFT * 4.1 + UP * 1.5)
+        
+        straight_arrow_1 = CustomArrow(same_text.get_right() + RIGHT*0.1, text_1.get_top() + LEFT*0.5, 0)
+        straight_arrow_2 = CustomArrow(same_text.get_right() + RIGHT*0.1, text_2.get_left() + UP*0.1, 0)
+        straight_arrow_3 = CustomArrow(same_text.get_right() + RIGHT*0.1, text_3.get_left(), 0)
+        self.add(straight_arrow_1, straight_arrow_2, straight_arrow_3)
+
+
+        self.play(
+            straight_arrow_1.end_vt.animate.set_value(1),
+            straight_arrow_2.end_vt.animate.set_value(1),
+            straight_arrow_3.end_vt.animate.set_value(1),
+            fade_and_shift_in(same_text, scale=0, shift = LEFT * (same_text.width/2), fade_rate_func = lambda x: 1, shift_rate_func=smooth)
+        )
+
+
+        line = Line(dot_1.get_center() + LEFT*DOT_SPACING + DOWN * 2, dot_4.get_center() + RIGHT*DOT_SPACING + UP * 2, color=YELLOW)
+
+        dot_1.set_z_index(1); dot_2.set_z_index(1); dot_3.set_z_index(1); dot_4.set_z_index(1)
+
+        self.play(Create(line))
+
+
+        self.play(
+            straight_arrow_1.start_vt.animate(rate_func=cubic_out).set_value(1),
+            straight_arrow_2.start_vt.animate(rate_func=cubic_out).set_value(1),
+            straight_arrow_3.start_vt.animate(rate_func=cubic_out).set_value(1),
+            fade_and_shift_out(same_text, LEFT + UP),
+            arrow_1.start_vt.animate(rate_func=cubic_out).set_value(1),
+            arrow_2.start_vt.animate(rate_func=cubic_out).set_value(1),
+            arrow_3.start_vt.animate(rate_func=cubic_out).set_value(1),
+            FadeOut(text_1, scale=0),
+            FadeOut(text_2, scale=0),
+            FadeOut(text_3, scale=0),
+        )
+
+        self.wait()

@@ -96,14 +96,20 @@ def create_axes(scene: Scene, axes: FullscreenAxes):
     )
 
 
+LENGTH_THRESHOLD = 0.6
+
 def create_arrow(
     target_start, # Point which arrow comes from
     target_end, # Point which arrow points to
     start=0, # Start point along arc (lerp from 0 to 1)
     end=1, # Start point along arc (lerp from 0 to 1)
     buff = 0.15, # Distance to separate arrow from target_start and target_end
-    angle=manim.PI*3/4 # How much does it curve? Positive = clockwise
+    angle=manim.PI*3/4, # How much does it curve? Positive = clockwise,
+    **kwargs
 ):
+
+    if angle == 0: return create_straight_arrow(target_start, target_end, start, end, buff)
+
     diff = target_end - target_start
     distance = math.sqrt(np.dot(diff, diff))
     signed_radius = distance / (2*math.sin(angle/2)) # Negative if counterclockwise
@@ -115,7 +121,6 @@ def create_arrow(
     angle_to_move = (end - start) * (2*modified_buff - angle)
 
 
-    LENGTH_THRESHOLD = 0.6
     length = abs(angle_to_move * signed_radius)
     size_modifier = 1 if length >= LENGTH_THRESHOLD else length / LENGTH_THRESHOLD
     size_modifier = cubic_out(size_modifier)
@@ -130,7 +135,7 @@ def create_arrow(
 
     take_back_length = 1/3 * stroke_width/100 + 2/3 * tip_size
 
-    arc = manim.Arc(abs(signed_radius), start_angle, angle_to_move + take_back_length/signed_radius, arc_center=center, stroke_width=stroke_width)
+    arc = manim.Arc(abs(signed_radius), start_angle, angle_to_move + take_back_length/signed_radius, arc_center=center, stroke_width=stroke_width, **kwargs)
     arc.tip = tip
     arc.set_cap_style(manim.CapStyleType.BUTT)
     arc.add(tip)
@@ -138,8 +143,42 @@ def create_arrow(
     return arc
 
 
+def create_straight_arrow(
+    target_start, # Point which arrow comes from
+    target_end, # Point which arrow points to
+    start=0, # Start point along line (lerp from 0 to 1)
+    end=1, # Start point along line (lerp from 0 to 1)
+    buff = 0.15, # Distance to separate arrow from target_start and target_end,
+    **kwargs
+):
+    diff = target_end - target_start
+    dir = manim.normalize(diff)
+    length = np.linalg.norm(target_end - target_start) - 2*buff
+
+    real_start = target_start + (buff + start*length) * dir
+    real_end = target_start + (buff + end*length) * dir
+
+    real_length = length * (end - start)
+
+    size_modifier = 1 if real_length >= LENGTH_THRESHOLD else real_length / LENGTH_THRESHOLD
+    tip_size = 0.2 * size_modifier
+    stroke_width = DEFAULT_STROKE_WIDTH * size_modifier
+
+    untipped_line = Line(real_start, real_end)
+    untipped_line.add_tip(tip_length = tip_size, tip_width = tip_size)
+    tip = untipped_line.tip
+    take_back_length = 1/3 * stroke_width/100 + 2/3 * tip_size
+
+    arrow = Line(real_start, real_end - dir*take_back_length, stroke_width=stroke_width, **kwargs)
+    arrow.tip = tip
+    arrow.set_cap_style(manim.CapStyleType.BUTT)
+    arrow.add(tip)
+
+    return arrow
+
+
 class CustomArrow(manim.VMobject):
-    def __init__(self, start_pos, end_pos, angle=manim.PI/2, text: manim.VMobject = None):
+    def __init__(self, start_pos, end_pos, angle=manim.PI/2, text: manim.VMobject = None, **kwargs):
         super().__init__()
         self.start_vt = manim.ValueTracker(0)
         self.end_vt = manim.ValueTracker(0)
@@ -152,7 +191,7 @@ class CustomArrow(manim.VMobject):
         self.add(self.arrow)
         
         def arrow_updater(mobject: CustomArrow):
-            mobject.arrow.become(create_arrow(start_pos, end_pos, self.start_vt.get_value(), self.end_vt.get_value(), angle=angle))
+            mobject.arrow.become(create_arrow(start_pos, end_pos, self.start_vt.get_value(), self.end_vt.get_value(), angle=angle, **kwargs))
             if mobject.has_text:
                 direction = UP if (end_pos[0] - start_pos[0])*angle >= 0 else manim.DOWN
                 mobject.text.become(mobject.original_text)

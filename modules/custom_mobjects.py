@@ -13,13 +13,14 @@ class FullscreenAxes(VGroup):
         tick_length: float = 0.25,
         tick_spacing: list[float] = [1, 1],
         stroke_width: float = DEFAULT_STROKE_WIDTH,
+        rect: manim.Rectangle = None,
         **kwargs,
     ):
         VGroup.__init__(self, **kwargs)
-        top = (scene.camera.frame_center + scene.camera.frame_height / 2)[1]
-        bottom = top - scene.camera.frame_height
-        right = (scene.camera.frame_center + scene.camera.frame_width / 2)[0]
-        left = right - scene.camera.frame_width
+        top = rect.get_top()[1] if rect != None else (scene.camera.frame_center + scene.camera.frame_height / 2)[1]
+        bottom = rect.get_bottom()[1] if rect != None else top - scene.camera.frame_height
+        right = rect.get_right()[0] if rect != None else (scene.camera.frame_center + scene.camera.frame_width / 2)[0]
+        left = rect.get_left()[0] if rect != None else right - scene.camera.frame_width
         
         x_line = Line(origin[1] * UP + left * RIGHT, origin[1] * UP + right * RIGHT, stroke_width=stroke_width, **kwargs)
         y_line = Line(origin[0] * RIGHT + bottom * UP, origin[0] * RIGHT + top * UP, stroke_width=stroke_width, **kwargs)
@@ -80,17 +81,17 @@ def create_axes(scene: Scene, axes: FullscreenAxes):
             manim.Create(axes.x_line, rate_func=manim.linear, run_time=0.5),
             LaggedStart(
                 *[tick.animate(rate_func=cubic_out, run_time=0.5).restore() for tick in axes.x_ticks],
-                lag_ratio=0.1
+                lag_ratio=1/len(axes.x_ticks)
             ),
-            lag_raio=0.4
+            lag_ratio=1/len(axes.x_ticks)
         ),
         manim.AnimationGroup(
             manim.Create(axes.y_line, rate_func=manim.linear, run_time=0.5 * scene.camera.frame_height / scene.camera.frame_width),
             LaggedStart(
                 *[tick.animate(rate_func=cubic_out, run_time=0.5).restore() for tick in axes.y_ticks],
-                lag_ratio=0.1
+                lag_ratio=1/len(axes.y_ticks)
             ),
-            lag_ratio=0.4
+            lag_ratio=1/len(axes.y_ticks)
         ),
         lag_ratio=0.2
     )

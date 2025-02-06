@@ -71,29 +71,32 @@ class FullscreenAxes(VGroup):
         super().become(mobj)
 
 
-def create_axes(scene: Scene, axes: FullscreenAxes):
+def create_axes(scene: Scene, axes: FullscreenAxes, x_axis_time = 0.5, **kwargs):
     for tick in [*axes.x_ticks, *axes.y_ticks]:
         tick.save_state()
         tick.scale(0)
+
+    y_axis_time = x_axis_time * scene.camera.frame_height / scene.camera.frame_width
     
     return LaggedStart(
         manim.AnimationGroup(
-            manim.Create(axes.x_line, rate_func=manim.linear, run_time=0.5),
+            manim.Create(axes.x_line, rate_func=manim.linear, run_time=x_axis_time),
             LaggedStart(
                 *[tick.animate(rate_func=cubic_out, run_time=0.5).restore() for tick in axes.x_ticks],
-                lag_ratio=1/len(axes.x_ticks)
+                lag_ratio = x_axis_time / (0.5 * len(axes.x_ticks))
             ),
-            lag_ratio=1/len(axes.x_ticks)
+            lag_ratio = x_axis_time / (0.5 * len(axes.x_ticks))
         ),
         manim.AnimationGroup(
-            manim.Create(axes.y_line, rate_func=manim.linear, run_time=0.5 * scene.camera.frame_height / scene.camera.frame_width),
+            manim.Create(axes.y_line, rate_func=manim.linear, run_time=y_axis_time),
             LaggedStart(
                 *[tick.animate(rate_func=cubic_out, run_time=0.5).restore() for tick in axes.y_ticks],
-                lag_ratio=1/len(axes.y_ticks)
+                lag_ratio = y_axis_time / (0.5 * len(axes.y_ticks))
             ),
-            lag_ratio=1/len(axes.y_ticks)
+            lag_ratio = y_axis_time / (0.5 * len(axes.y_ticks))
         ),
-        lag_ratio=0.2
+        lag_ratio=0.2,
+        **kwargs
     )
 
 
@@ -219,3 +222,37 @@ class CustomArrow(manim.VMobject):
             self.original_text = text.copy()
             self.text = manim.VMobject()
             self.add(self.text)
+
+
+
+class DottedLine(manim.VMobject):
+    def __init__(self, start=manim.LEFT, end=RIGHT, line_length = 0.1, space_length = 0.1, buff = 0, **kwargs):
+        self.dim = 3
+        self.buff = buff
+
+        points = []
+        length = np.linalg.norm(start - end)
+        if length > line_length:
+            direction = (end - start) / length
+
+            for dist in np.arange(0, length - line_length, line_length + space_length):
+                points.extend([
+                    start + direction * dist,
+                    start + direction * (dist + line_length / 3),
+                    start + direction * (dist + 2 * line_length / 3),
+                    start + direction * (dist + line_length)
+                ])
+                last_dist = dist + line_length
+            if length - last_dist > space_length:
+                dist = last_dist + space_length
+                points.extend([
+                    start + direction * dist,
+                    start + direction * (dist * 2/3 + length * 1/3),
+                    start + direction * (dist * 1/3 + length * 2/3),
+                    start + direction * length
+                ])
+        else:
+            points = Line(start, end).points
+        
+        super().__init__(**kwargs)
+        self.set_points(points)

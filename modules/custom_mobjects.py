@@ -105,14 +105,16 @@ LENGTH_THRESHOLD = 0.6
 def create_arrow(
     target_start, # Point which arrow comes from
     target_end, # Point which arrow points to
-    start=0, # Start point along arc (lerp from 0 to 1)
-    end=1, # Start point along arc (lerp from 0 to 1)
+    start = 0, # Start point along arc (lerp from 0 to 1)
+    end = 1, # Start point along arc (lerp from 0 to 1)
     buff = 0.15, # Distance to separate arrow from target_start and target_end
-    angle=manim.PI*3/4, # How much does it curve? Positive = clockwise,
+    angle = manim.PI*3/4, # How much does it curve? Positive = clockwise,
+    stroke_width = DEFAULT_STROKE_WIDTH,
+    tip_size = 0.2,
     **kwargs
 ):
 
-    if angle == 0: return create_straight_arrow(target_start, target_end, start, end, buff)
+    if angle == 0: return create_straight_arrow(target_start, target_end, start, end, buff, stroke_width, tip_size, **kwargs)
 
     diff = target_end - target_start
     distance = math.sqrt(np.dot(diff, diff))
@@ -129,17 +131,17 @@ def create_arrow(
     size_modifier = 1 if length >= LENGTH_THRESHOLD else length / LENGTH_THRESHOLD
     size_modifier = cubic_out(size_modifier)
 
-    stroke_width = DEFAULT_STROKE_WIDTH * size_modifier
+    real_stroke_width = stroke_width * size_modifier
 
-    tip_size = 0.2 * size_modifier
+    real_tip_size = tip_size * size_modifier
 
     untipped_arc = manim.Arc(abs(signed_radius), start_angle, angle_to_move, arc_center=center)
-    untipped_arc.add_tip(tip_length = tip_size, tip_width = tip_size)
+    untipped_arc.add_tip(tip_length = real_tip_size, tip_width = real_tip_size)
     tip = untipped_arc.tip
 
-    take_back_length = 1/3 * stroke_width/100 + 2/3 * tip_size
+    take_back_length = 1/3 * real_stroke_width/100 + 2/3 * real_tip_size
 
-    arc = manim.Arc(abs(signed_radius), start_angle, angle_to_move + take_back_length/signed_radius, arc_center=center, stroke_width=stroke_width, **kwargs)
+    arc = manim.Arc(abs(signed_radius), start_angle, angle_to_move + take_back_length/signed_radius, arc_center=center, stroke_width=real_stroke_width, **kwargs)
     arc.tip = tip
     arc.set_cap_style(manim.CapStyleType.BUTT)
     arc.add(tip)
@@ -153,6 +155,8 @@ def create_straight_arrow(
     start=0, # Start point along line (lerp from 0 to 1)
     end=1, # Start point along line (lerp from 0 to 1)
     buff = 0.15, # Distance to separate arrow from target_start and target_end,
+    stroke_width = DEFAULT_STROKE_WIDTH,
+    tip_size = 0.2,
     **kwargs
 ):
     diff = target_end - target_start
@@ -165,15 +169,15 @@ def create_straight_arrow(
     real_length = length * (end - start)
 
     size_modifier = 1 if real_length >= LENGTH_THRESHOLD else real_length / LENGTH_THRESHOLD
-    tip_size = 0.2 * size_modifier
-    stroke_width = DEFAULT_STROKE_WIDTH * size_modifier
+    real_tip_size = tip_size * size_modifier
+    real_stroke_width = stroke_width * size_modifier
 
     untipped_line = Line(real_start, real_end)
-    untipped_line.add_tip(tip_length = tip_size, tip_width = tip_size)
+    untipped_line.add_tip(tip_length = real_tip_size, tip_width = real_tip_size)
     tip = untipped_line.tip
-    take_back_length = 1/3 * stroke_width/100 + 2/3 * tip_size
+    take_back_length = 1/3 * real_stroke_width/100 + 2/3 * real_tip_size
 
-    arrow = Line(real_start, real_end - dir*take_back_length, stroke_width=stroke_width, **kwargs)
+    arrow = Line(real_start, real_end - dir*take_back_length, stroke_width=real_stroke_width, **kwargs)
     arrow.tip = tip
     arrow.set_cap_style(manim.CapStyleType.BUTT)
     arrow.add(tip)

@@ -1,7 +1,7 @@
 from manim import *
 from modules.custom_mobjects import CustomArrow, DottedLine, FullscreenAxes, create_axes
 from modules.interpolation import cubic_out
-from modules.helpers import fade_and_shift_in
+from modules.helpers import fade_and_shift_in, morph_text
 import math
 
 from modules.interpolation import bounce
@@ -137,3 +137,51 @@ class ThreeSteps(Scene):
                 lag_ratio = 1/2.5
             )
         )
+
+
+
+class Equation(Scene):
+    def construct(self):
+        text = MathTex("S(x) = \\sum_{k=1}^n f(k)", "+ \\sum_{k=1}^x f(n + k)", "- \\sum_{k=1}^n f(x + k)")
+        new_text = MathTex("S(x) = \\sum_{k=1}^n f(k)", "- \\sum_{k=1}^n f(x + k)", "+ \\sum_{k=1}^x f(n + k)")
+        self.add(text)
+        self.play(morph_text(text, new_text, [0, 2, 1], path_arc=PI*3/4))        
+        self.remove(*text, *new_text)
+
+        text = MathTex("S(x) = \\sum_{k=1}^n", "f(k) -", "\\sum_{k=1}^n", "f(x + k)", "+ \\sum_{k=1}^x f(n + k)")
+        new_text = MathTex("S(x) = \\sum_{k=1}^n", "(", "f(k) -", "f(x + k)", ")", "+ \\sum_{k=1}^x f(n + k)")
+        self.add(text)
+        self.play(morph_text(text, new_text, [0, 2, None, 3, 5]))
+        self.remove(*text, *new_text)
+
+        text = MathTex("S(x) =", "\\sum_{k=1}^n (f(k) - f(x + k)) + \\sum_{k=1}^x f(n + k)")
+        new_text = MathTex("S(x) =", "\\lim_{n \\to \\infty} \\left(", "\\sum_{k=1}^n (f(k) - f(x + k)) + \\sum_{k=1}^x f(n + k)", "\\right)")
+        self.add(text)
+        self.play(morph_text(text, new_text, [0, 2]))
+        self.remove(*text, *new_text)
+
+        text = MathTex("S(x) = \\lim_{n \\to \\infty} \\left(", "\\sum_{k=1}^n (f(k) - f(x + k))", "+", "\\sum_{k=1}^x f(n + k)", "\\right)", stroke_width=0)
+        text.set()
+        self.add(text)
+        # self.play(text[1].animate.set_stroke(width=2))
+
+        text.save_state()
+
+        text[1].save_state()
+
+        self.play(
+            *[obj.animate.set_stroke(width=1.5).scale(1.1) for obj in text[1]],
+            VGroup(text[:1], text[2:]).animate.set_color(GRAY)
+        )
+
+        self.play(text[1][0].animate.scale(1.2).set_color(GREEN))
+
+        self.play(
+            text[1].animate.restore().set_color(GRAY),
+            *[obj.animate.set_stroke(width=1.5).scale(1.1).set_color(WHITE) for obj in text[3]]
+        )
+
+        self.play(text[3][0].animate.scale(1.2).set_color(RED))
+        self.play(text[3][7].animate.scale(1.2).set_color(GREEN))
+
+        self.play(text.animate.restore())

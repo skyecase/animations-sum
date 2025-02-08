@@ -1,7 +1,7 @@
 from manim import *
 from modules.custom_mobjects import CustomArrow, DottedLine, FullscreenAxes, create_axes
 from modules.interpolation import cubic_out
-from modules.helpers import fade_and_shift_in, morph_text
+from modules.helpers import create_updater_container, fade_and_shift_in, morph_text
 import math
 
 from modules.interpolation import bounce
@@ -19,6 +19,8 @@ def s(x):
 
 class ThreeSteps(Scene):
     def construct(self):
+        u = create_updater_container(self)
+
         rect = Rectangle(height=3.5, width=self.camera.frame_width).move_to(UP * self.camera.frame_height/2, UP)
 
         axes = FullscreenAxes(self, UP*1 + LEFT*6, [1/2, 1/2], 0.15, stroke_width=3, rect=rect)
@@ -100,14 +102,15 @@ class ThreeSteps(Scene):
             npx_dot.animate.restore()
         )
 
-
-        s_npx_text = MathTex("S(n + x)").scale(0.8).move_to(npx_dot.get_center() + UP)
-        s_npx_arrow = CustomArrow(s_npx_text.get_bottom(), npx_dot.get_center(), 0, stroke_width=3)
-        self.add(s_npx_arrow)
+        npx_text = MathTex("n + x").move_to(axes.coords_to_point(21 + 2.5, 0) + DOWN * 0.75, UP).set_color(GREEN)
+        npx_line = DottedLine(npx_text.get_top() + UP*0.1, axes.coords_to_point(21 + 2.5, 6), stroke_width=3).set_color(GREEN)
 
         self.play(
-            fade_and_shift_in(s_npx_text, DOWN * 0.5),
-            s_npx_arrow.end_vt.animate.set_value(1)
+            LaggedStart(
+                fade_and_shift_in(npx_text, UP),
+                Create(npx_line, rate_func=cubic_out),
+                lag_ratio=0.3
+            ),
         )
 
         text_3 = Tex("\\textbf{Step 3:} ", "Step backward $n$ units.").move_to(DOWN*3 + LEFT*5, LEFT)
@@ -163,7 +166,6 @@ class Equation(Scene):
         text = MathTex("S(x) = \\lim_{n \\to \\infty} \\left(", "\\sum_{k=1}^n (f(k) - f(x + k))", "+", "\\sum_{k=1}^x f(n + k)", "\\right)", stroke_width=0)
         text.set()
         self.add(text)
-        # self.play(text[1].animate.set_stroke(width=2))
 
         text.save_state()
 

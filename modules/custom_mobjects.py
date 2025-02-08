@@ -206,7 +206,8 @@ class CustomArrow(manim.VMobject):
                 mobject.text.shift((start_pos + end_pos) / 2 + direction * mobject.text_pos_vt.get_value())
                 mobject.text.scale(mobject.text_scale_vt.get_value())
                 mobject.text.set_opacity(mobject.text_opacity_vt.get_value())
-        self.add_updater(arrow_updater)
+        self.arrow_updater=arrow_updater
+        self.add_arrow_updater()
 
         self.animation = manim.AnimationGroup(
             LaggedStart(
@@ -226,6 +227,12 @@ class CustomArrow(manim.VMobject):
             self.original_text = text.copy()
             self.text = manim.VMobject()
             self.add(self.text)
+    
+    def add_arrow_updater(self):
+        self.add_updater(self.arrow_updater)
+    
+    def remove_arrow_updater(self):
+        self.remove_updater(self.arrow_updater)
 
 
 

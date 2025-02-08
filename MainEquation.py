@@ -1,5 +1,5 @@
 from manim import *
-from modules.custom_mobjects import CustomArrow, DottedLine, FullscreenAxes, create_axes
+from modules.custom_mobjects import CustomArrow, DottedLine, FullscreenAxes, create_arrow, create_axes
 from modules.interpolation import cubic_out
 from modules.helpers import create_updater_container, fade_and_shift_in, morph_text
 import math
@@ -21,6 +21,10 @@ class ThreeSteps(Scene):
     def construct(self):
         u = create_updater_container(self)
 
+        X_START = 2.5
+        X_COLOR = RED
+        N_COLOR = GREEN
+
         rect = Rectangle(height=3.5, width=self.camera.frame_width).move_to(UP * self.camera.frame_height/2, UP)
 
         axes = FullscreenAxes(self, UP*1 + LEFT*6, [1/2, 1/2], 0.15, stroke_width=3, rect=rect)
@@ -29,8 +33,8 @@ class ThreeSteps(Scene):
         dots = [Dot(axes.coords_to_point(i, s(i)), color=BLUE) for i in range(-2, 27)]
         for dot in dots: dot.set_z_index(2)
 
-        n_text = MathTex("n").move_to(axes.coords_to_point(21, 0) + DOWN * 0.35, UP).set_color(RED)
-        n_line = DottedLine(n_text.get_top() + UP*0.1, axes.coords_to_point(21, 6), stroke_width=3).set_color(RED)
+        n_text = MathTex("n").move_to(axes.coords_to_point(21, 0) + DOWN * 0.35, UP).set_color(N_COLOR)
+        n_line = DottedLine(n_text.get_top() + UP*0.1, axes.coords_to_point(21, 6), stroke_width=3).set_color(N_COLOR)
 
         curve = ParametricFunction(lambda t: axes.coords_to_point(t, s(t)), [20, 26.5], stroke_width=3, color=YELLOW)
 
@@ -56,8 +60,8 @@ class ThreeSteps(Scene):
         )
 
 
-        x_text = MathTex("x").move_to(axes.coords_to_point(2.5, 0) + DOWN * 0.35, UP).set_color(GREEN)
-        x_line = DottedLine(x_text.get_top() + UP*0.1, axes.coords_to_point(2.5, 6), stroke_width=3).set_color(GREEN)
+        x_text = MathTex("x").move_to(axes.coords_to_point(X_START, 0) + DOWN * 0.35, UP).set_color(X_COLOR)
+        x_line = DottedLine(x_text.get_top() + UP*0.1, axes.coords_to_point(X_START, 6), stroke_width=3).set_color(X_COLOR)
 
         self.play(
             LaggedStart(
@@ -85,10 +89,11 @@ class ThreeSteps(Scene):
         )
 
 
-        arrow = CustomArrow(n_dot.get_center(), axes.coords_to_point(21 + 2.5, s(21 + 2.5)), PI*3/4, stroke_width=3)
+        arrow = CustomArrow(n_dot.get_center(), axes.coords_to_point(21 + X_START, s(21 + X_START)), PI*3/4, stroke_width=3)
         self.add(arrow)
 
-        npx_dot = Dot(axes.coords_to_point(21 + 2.5, s(21 + 2.5)), color=RED).scale(1.5)
+        npx_dot = Dot(axes.coords_to_point(21 + X_START, s(21 + X_START)), color=X_COLOR).scale(1.5)
+        npx_dot.set_z_index(2)
         npx_dot.save_state()
         npx_dot.scale(0)
 
@@ -102,8 +107,8 @@ class ThreeSteps(Scene):
             npx_dot.animate.restore()
         )
 
-        npx_text = MathTex("n + x").move_to(axes.coords_to_point(21 + 2.5, 0) + DOWN * 0.75, UP).set_color(GREEN)
-        npx_line = DottedLine(npx_text.get_top() + UP*0.1, axes.coords_to_point(21 + 2.5, 6), stroke_width=3).set_color(GREEN)
+        npx_text = MathTex("n + x").move_to(axes.coords_to_point(21 + X_START, 0) + DOWN * 0.75, UP).set_color(X_COLOR)
+        npx_line = DottedLine(npx_text.get_top() + UP*0.1, axes.coords_to_point(21 + X_START, 6), stroke_width=3).set_color(X_COLOR)
 
         self.play(
             LaggedStart(
@@ -119,11 +124,15 @@ class ThreeSteps(Scene):
 
 
 
-        arrows = [CustomArrow(axes.coords_to_point(i+2.5+1, s(i+2.5+1)), axes.coords_to_point(i+2.5, s(i+2.5)), PI*3/4, buff=0.07, tip_size=0.125, stroke_width=3) for i in range(0, 21)]
-        for arrow in arrows: self.add(arrow)
+        arrows = [CustomArrow(axes.coords_to_point(i+X_START+1, s(i+X_START+1)), axes.coords_to_point(i+X_START, s(i+X_START)), PI*3/4, buff=0.07, tip_size=0.125, stroke_width=3) for i in range(0, 21)]
+        for a in arrows:
+            a.set_z_index(2)
+            self.add(a)
 
-        offset_dots = [Dot(axes.coords_to_point(i+2.5, s(i+2.5)), 0.06, color=RED) for i in range(0, 21)]
+        offset_dots = [Dot(axes.coords_to_point(i+X_START, s(i+X_START)), 0.06, color=X_COLOR) for i in range(0, 21)]
+        offset_dots[0] = npx_dot.copy().move_to(offset_dots[0])
         for dot in offset_dots:
+            dot.set_z_index(2)
             dot.save_state()
             dot.scale(0)
 
@@ -137,9 +146,67 @@ class ThreeSteps(Scene):
                         lag_ratio = 0.25
                     ) for i in reversed(range(0, 21))
                 ],
-                lag_ratio = 1/2.5
+                lag_ratio = 1/X_START
             )
         )
+
+
+        for a in arrows + [arrow]: a.remove_arrow_updater()
+
+        x_vt = ValueTracker(X_START)
+
+        def updater(_):
+            x = x_vt.get_value()
+
+            arrow.become(create_arrow(n_dot.get_center(), axes.coords_to_point(21 + x, s(21 + x)), 0, 1, angle=PI*3/4, stroke_width=3))
+            for i in range(0, len(arrows)):
+                arrows[i].become(create_arrow(axes.coords_to_point(i+x+1, s(i+x+1)), axes.coords_to_point(i+x, s(i+x)), 0, 1, 0.07, PI*3/4, tip_size=0.125, stroke_width=3))
+
+            npx_dot.become(Dot(axes.coords_to_point(21 + x, s(21 + x)), color=X_COLOR).scale(1.5))
+            for i in range(0, len(offset_dots)):
+                offset_dots[i].become(Dot(axes.coords_to_point(i+x, s(i+x)), 0.06, color=X_COLOR))
+            offset_dots[0].become(npx_dot.copy().move_to(offset_dots[0]))
+
+            x_text.become(MathTex("x").move_to(axes.coords_to_point(x, 0) + DOWN * 0.35, UP).set_color(X_COLOR))
+            x_line.become(DottedLine(x_text.get_top() + UP*0.1, axes.coords_to_point(x, 6), stroke_width=3).set_color(X_COLOR))
+
+            npx_text.become(MathTex("n + x").move_to(axes.coords_to_point(21 + x, 0) + DOWN * 0.75, UP).set_color(X_COLOR))
+            npx_line.become(DottedLine(npx_text.get_top() + UP*0.1, axes.coords_to_point(21 + x, 6), stroke_width=3).set_color(X_COLOR))
+        u.add_updater(updater)
+
+        self.play(x_vt.animate.set_value(0.8), run_time = 3)
+        self.play(x_vt.animate.set_value(PI), run_time = 3)
+
+        u.remove_updater(updater)
+
+
+
+        def updater(_):
+            x = x_vt.get_value()
+
+            arrow.become(create_arrow(n_dot.get_center(), axes.coords_to_point(21 + x, s(21 + x)), arrow.start_vt.get_value(), 1, angle=PI*3/4, stroke_width=3))
+            for i in range(0, len(arrows)):
+                arrows[i].become(create_arrow(axes.coords_to_point(i+x+1, s(i+x+1)), axes.coords_to_point(i+x, s(i+x)), arrows[i].start_vt.get_value(), 1, 0.07, PI*3/4, tip_size=0.125, stroke_width=3))
+        u.add_updater(updater)
+
+        self.play(
+            LaggedStart(
+                AnimationGroup(
+                    LaggedStart(
+                        *[a.start_vt.animate(rate_func=cubic_out).set_value(1) for a in reversed(arrows + [arrow])]
+                    ),
+                    LaggedStart(
+                        *[d.animate.scale(0) for d in reversed(offset_dots + [npx_dot])]
+                    )
+                ),
+                curve.animate.set_stroke(width=7),
+                lag_ratio=0.7
+            )
+        )
+
+        curve.reverse_points()
+
+        self.play(Uncreate(curve), rate_func=cubic_out)
 
 
 

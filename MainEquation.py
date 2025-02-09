@@ -1,7 +1,7 @@
 from manim import *
 from modules.custom_mobjects import CustomArrow, DottedLine, FullscreenAxes, create_arrow, create_axes
 from modules.interpolation import cubic_out
-from modules.helpers import create_updater_container, fade_and_shift_in, morph_text
+from modules.helpers import create_updater_container, fade_and_shift_in, fade_and_shift_out, morph_text
 import math
 
 from modules.interpolation import bounce
@@ -82,7 +82,7 @@ class ThreeSteps(Scene):
         
         self.play(fade_and_shift_in(text_1[0], LEFT*0.5, run_time = 0.5))
         self.play(
-            Write(text_1[1]),
+            Write(text_1[1], run_time = 1),
             n_dot.animate.scale(1.5),
             s_n_arrow.end_vt.animate.set_value(1),
             fade_and_shift_in(s_n_text, (DOWN+RIGHT)/2, run_time=0.75)
@@ -102,7 +102,7 @@ class ThreeSteps(Scene):
         self.play(fade_and_shift_in(text_2[0], LEFT * 0.5, run_time=0.5))
         self.play(
             n_dot.animate(rate_func=bounce()).scale(1/1.5),
-            Write(text_2[1]),
+            Write(text_2[1], run_time = 1),
             arrow.end_vt.animate(rate_func=cubic_out).set_value(1),
             npx_dot.animate.restore()
         )
@@ -137,7 +137,7 @@ class ThreeSteps(Scene):
             dot.scale(0)
 
         self.play(
-            Write(text_3[1]),
+            Write(text_3[1], run_time = 1),
             LaggedStart(
                 *[
                     LaggedStart(
@@ -204,9 +204,105 @@ class ThreeSteps(Scene):
             )
         )
 
+        u.remove_updater(updater)
+
         curve.reverse_points()
 
         self.play(Uncreate(curve), rate_func=cubic_out)
+
+
+
+
+
+        self.play(
+            VGroup(x_text, x_line).animate(rate_func=bounce()).shift((axes.coords_to_point(4, 0) - x_line.get_center()) * RIGHT),
+            npx_line.animate(rate_func=bounce()).shift((axes.coords_to_point(21+4, 0) - npx_line.get_center()) * RIGHT),
+            npx_text.animate(rate_func=bounce()).shift((axes.coords_to_point(21+4, 0) - npx_line.get_center())/2 * RIGHT),
+            dots[23].animate.scale(1.5)
+        )
+
+
+        STEP_X_START = text_1.get_left()
+
+
+        text_2.save_state()
+        text_3.save_state()
+
+        self.play(
+            # text_1.animate.shift(RIGHT * (STEP_X_START - text_1.get_left())),
+            text_2.animate.scale(0.8).move_to(STEP_X_START*RIGHT + DOWN*2, LEFT).set_color(GRAY),
+            text_3.animate.scale(0.8).move_to(STEP_X_START*RIGHT + DOWN*3, LEFT).set_color(GRAY),
+        )
+
+        sum_1 = MathTex("\\sum_{k=1}^n f(k)").move_to(text_1.get_center()*UP + 3*RIGHT)
+
+        self.play(Write(sum_1))
+
+
+        self.play(
+            VGroup(text_1, sum_1).animate.scale(0.8).move_to(STEP_X_START*RIGHT + text_1.get_center()*UP + 0.5*UP, LEFT).set_color(GRAY),
+            text_2.animate.restore().shift(UP * 0.75)
+        )
+
+
+
+        forward_arrows = [
+            CustomArrow(axes.coords_to_point(21+i, s(21+i)), axes.coords_to_point(21+1+i, s(21+1+i)), PI*3/4, buff=0.07, tip_size=0.125, stroke_width=3)
+            for i in range(0, 4)
+        ]
+        forward_arrows[0].set_text(MathTex("+\,f(n+1)").scale(0.5).move_to(UP*0.2, DOWN))
+        forward_arrows[1].set_text(MathTex("+\,f(n+2)").scale(0.5).move_to(UP*0.2, DOWN))
+        forward_arrows[2].set_text(MathTex("+\,\cdots").scale(0.5).move_to(UP*0.2, DOWN))
+        forward_arrows[3].set_text(MathTex("+\,f(n+x)").scale(0.5).move_to(UP*0.2, DOWN))
+        for a in forward_arrows: self.add(a)
+
+        sub_text = MathTex("+", "\,f(n+1)", "+", "f(n+2)", "+", "\\cdots", "+", "f(n+x)").move_to(text_2.get_center()*UP + DOWN).scale(0.8)
+
+
+        arrow_dot_animations = [a.animation for a in forward_arrows]
+        arrow_dot_animations[-1] = AnimationGroup(dots[27].animate.scale(1.5), arrow_dot_animations[-1])
+
+        self.play(
+            dots[23].animate.scale(1/1.5),
+            LaggedStart(
+                *arrow_dot_animations,
+                lag_ratio = 0.5,
+            ),
+            LaggedStart(
+                *[fade_and_shift_in(t, LEFT) for t in sub_text[:5]],
+                *[fade_and_shift_in(t, LEFT) for t in sub_text[5]],
+                *[fade_and_shift_in(t, LEFT) for t in sub_text[6:]],
+                lag_ratio = 0.25
+            )
+        )
+
+        self.remove(*forward_arrows)
+
+        self.remove(*sub_text, *sub_text[5])
+        sub_text = MathTex("+ \,f(n+1) + f(n+2) + \\cdots + f(n+x)").move_to(text_2.get_center()*UP + DOWN).scale(0.8)
+        new_sub_text = MathTex("+ \,f(n+1) + f(n+2) + \\cdots + f(n+x)", "\ =\ +\,\\sum_{k=1}^x f(n+k)").move_to(text_2.get_center()*UP + DOWN).scale(0.8)
+
+        self.play(
+            sub_text[0].animate.become(new_sub_text[0]),
+            FadeIn(new_sub_text[1], shift=LEFT*2)
+        )
+
+        self.remove(*sub_text, *new_sub_text)
+        sub_text = MathTex("+ \,f(n+1) + f(n+2) + \\cdots + f(n+x)\ =\ ", "+\,\\sum_{k=1}^x f(n+k)").move_to(text_2.get_center()*UP + DOWN).scale(0.8)
+        self.add(sub_text)
+
+
+        self.play(
+            fade_and_shift_out(sub_text[0], LEFT),
+            sub_text[1].animate.shift(UP * (text_2.get_center() - sub_text[1].get_center()))
+        )
+
+        self.play(
+            text_2.animate.scale(0.8).move_to(STEP_X_START*RIGHT + DOWN, LEFT).set_color(GRAY),
+            sub_text[1].animate.set_color(GRAY).shift(LEFT),
+            text_3.animate.restore().shift(UP)
+        )
+
 
 
 

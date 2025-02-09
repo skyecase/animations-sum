@@ -428,10 +428,18 @@ class Equation(Scene):
         self.play(morph_text(text, new_text, [0, 2, 1], path_arc=PI*3/4))        
         self.remove(*text, *new_text)
 
-        text = MathTex("S(x) = \\sum_{k=1}^n", "f(k) -", "\\sum_{k=1}^n", "f(x + k)", "+ \\sum_{k=1}^x f(n + k)")
-        new_text = MathTex("S(x) = \\sum_{k=1}^n", "(", "f(k) -", "f(x + k)", ")", "+ \\sum_{k=1}^x f(n + k)")
+        text = MathTex("S(x) =", "\\sum_{k=1}^n", "f(k) -", "\\sum_{k=1}^n", "f(x + k)", "+ \\sum_{k=1}^x f(n + k)")
         self.add(text)
-        self.play(morph_text(text, new_text, [0, 2, None, 3, 5]))
+        self.play(
+            text[1][0].animate.set_stroke(width=1.5).scale(1.1).set_color(BLUE),
+            text[1][2:].animate.set_stroke(width=1.5).scale(1.1).set_color(BLUE),
+            text[3][0].animate.set_stroke(width=1.5).scale(1.1).set_color(BLUE),
+            text[3][2:].animate.set_stroke(width=1.5).scale(1.1).set_color(BLUE),
+        )
+
+        new_text = MathTex("S(x) =", "\\sum_{k=1}^n", "(", "f(k) -", "f(x + k)", ")", "+ \\sum_{k=1}^x f(n + k)")
+        self.add(text)
+        self.play(morph_text(text, new_text, [0, 1, 3, None, 4, 6]))
         self.remove(*text, *new_text)
 
         text = MathTex("S(x) =", "\\sum_{k=1}^n (f(k) - f(x + k)) + \\sum_{k=1}^x f(n + k)")

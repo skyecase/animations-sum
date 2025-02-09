@@ -449,8 +449,15 @@ class Equation(Scene):
         self.remove(*text, *new_text)
 
         text = MathTex("S(x) = \\lim_{n \\to \\infty} \\left(", "\\sum_{k=1}^n (f(k) - f(x + k))", "+", "\\sum_{k=1}^x f(n + k)", "\\right)", stroke_width=0)
-        text.set()
         self.add(text)
+
+        rect = SurroundingRectangle(text, buff=MED_SMALL_BUFF, color=WHITE)
+        def rect_update_function(rect: SurroundingRectangle, alpha: float):
+            rect.become(SurroundingRectangle(text, buff=MED_SMALL_BUFF + 0.25*(1-cubic_out(alpha)), color=WHITE))
+            rect.set_stroke(opacity=alpha)
+        self.play(UpdateFromAlphaFunc(rect, rect_update_function), rate_func=linear)
+        self.play(UpdateFromAlphaFunc(rect, rect_update_function), rate_func=lambda t: 1-t)
+        self.remove(rect)
 
         text.save_state()
 

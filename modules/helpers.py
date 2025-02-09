@@ -259,3 +259,33 @@ def normalize_point_speed(points: list[np.array], segment_length = 0.1):
 
 
     return new_points
+
+
+
+
+class CustomLaggedStart(manim.LaggedStart):
+    def __init__(
+        self,
+        *animations: manim.Animation,
+        lag_ratio_function: callable = lambda i, total: 0.02,
+        **kwargs,
+    ):
+        self.lag_ratio_function = lag_ratio_function
+        super().__init__(*animations, **kwargs)
+    
+    def build_animations_with_timings(self) -> None:
+        """Creates a list of triplets of the form (anim, start_time, end_time)."""
+        run_times = np.array([anim.run_time for anim in self.animations])
+        num_animations = run_times.shape[0]
+        dtype = [("anim", "O"), ("start", "f8"), ("end", "f8")]
+        self.anims_with_timings = np.zeros(num_animations, dtype=dtype)
+        self.anims_begun = np.zeros(num_animations, dtype=bool)
+        self.anims_finished = np.zeros(num_animations, dtype=bool)
+        if num_animations == 0:
+            return
+
+        # lags = run_times[:-1] * np.array(self.lag_ratio_map)
+        lags = np.array([run_times[i] * self.lag_ratio_function(i, len(run_times)) for i in range(len(run_times)-1)])
+        self.anims_with_timings["anim"] = self.animations
+        self.anims_with_timings["start"][1:] = np.add.accumulate(lags)
+        self.anims_with_timings["end"] = self.anims_with_timings["start"] + run_times

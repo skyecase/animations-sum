@@ -209,7 +209,10 @@ class CustomArrow(manim.VMobject):
         self.arrow_updater=arrow_updater
         self.add_arrow_updater()
 
-        self.animation = manim.AnimationGroup(
+        self.animation = self.create_animation()
+    
+    def create_animation(self, **kwargs):
+        return manim.AnimationGroup(
             LaggedStart(
                 self.end_vt.animate(rate_func = cubic_out).set_value(1),
                 self.start_vt.animate(rate_func = cubic_out).set_value(1),
@@ -218,7 +221,8 @@ class CustomArrow(manim.VMobject):
             LaggedStart(
                 self.text_scale_vt.animate(rate_func=cubic_out, run_time=1.5).set_value(1),
                 self.text_opacity_vt.animate(rate_func=manim.linear, run_time=1).set_value(0),
-                lag_ratio = 0.3333)
+                lag_ratio = 0.3333),
+            **kwargs
         )
     
     def set_text(self, text: manim.VMobject = None):

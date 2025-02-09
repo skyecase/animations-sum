@@ -1,7 +1,7 @@
 from manim import *
 from modules.custom_mobjects import CustomArrow, DottedLine, FullscreenAxes, create_arrow, create_axes
 from modules.interpolation import cubic_out
-from modules.helpers import create_updater_container, fade_and_shift_in, fade_and_shift_out, morph_text
+from modules.helpers import CustomLaggedStart, create_updater_container, fade_and_shift_in, fade_and_shift_out, morph_text
 import math
 
 from modules.interpolation import bounce
@@ -301,6 +301,55 @@ class ThreeSteps(Scene):
             text_2.animate.scale(0.8).move_to(STEP_X_START*RIGHT + DOWN, LEFT).set_color(GRAY),
             sub_text[1].animate.set_color(GRAY).shift(LEFT),
             text_3.animate.restore().shift(UP)
+        )
+
+
+
+        backward_arrows = [
+            CustomArrow(axes.coords_to_point(4+1+i, s(4+1+i)), axes.coords_to_point(4+i, s(4+i)), PI*3/4, buff=0.07, tip_size=0.125, stroke_width=3)
+            for i in range(0, 21)
+        ]
+        backward_arrows[20].set_text(MathTex("-\,f(x+n)").scale(0.5).move_to(DOWN * 0.1, UP))
+        backward_arrows[19].set_text(MathTex("-\,f(x+n-1)").scale(0.3).move_to(DOWN * 0.1, UP))
+        backward_arrows[18].set_text(MathTex("-\,f(x+n-2)").scale(0.15).move_to(DOWN * 0.1, UP))
+        backward_arrows[0].set_text(MathTex("-\,f(x+1)").scale(0.5).move_to(DOWN * 0.1, UP))
+        backward_arrows[1].set_text(MathTex("-\,f(x+2)").scale(0.5).move_to(DOWN * 0.1, UP))
+        backward_arrows[2].set_text(MathTex("-\,f(x+3)").scale(0.3).move_to(DOWN * 0.1, UP))
+        backward_arrows[3].set_text(MathTex("-\,f(x+4)").scale(0.15).move_to(DOWN * 0.1, UP))
+        self.add(*backward_arrows)
+
+
+        sub_text = MathTex("-\,", "f(x+n)", "-", "\\cdots", "-", "f(x+2)", "-", "f(x+1)").scale(0.8).move_to(DOWN * 3)
+
+        def custom_lag_ratio(i, total):
+            dist_from_end = min(i, total - i - 1)
+            START_SLOWING_AFTER = 1
+            STOP_SLOWING_AFTER = 6
+            if dist_from_end <= START_SLOWING_AFTER: return 0.4
+            if dist_from_end >= STOP_SLOWING_AFTER: return 0.1
+            x = (dist_from_end - START_SLOWING_AFTER)/(STOP_SLOWING_AFTER-START_SLOWING_AFTER)
+
+            return x*0.1 + (1-x)*0.4
+
+
+        animations = [a.create_animation() for a in reversed(backward_arrows)]
+        animations[-1] = AnimationGroup(
+            animations[-1],
+            dots[6].animate.scale(1.5)
+        )
+
+        self.play(
+            dots[27].animate.scale(1/1.5),
+            CustomLaggedStart(
+                *animations,
+                lag_ratio_function=custom_lag_ratio 
+            ),
+            LaggedStart(
+                *[fade_and_shift_in(t, LEFT) for t in sub_text[:3]],
+                *[fade_and_shift_in(t, LEFT) for t in sub_text[3]],
+                *[fade_and_shift_in(t, LEFT) for t in sub_text[4:]],
+                lag_ratio = 0.7
+            )
         )
 
 

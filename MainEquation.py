@@ -87,6 +87,7 @@ class ThreeSteps(Scene):
             s_n_arrow.end_vt.animate.set_value(1),
             fade_and_shift_in(s_n_text, (DOWN+RIGHT)/2, run_time=0.75)
         )
+        s_n_arrow.remove_arrow_updater()
 
 
         arrow = CustomArrow(n_dot.get_center(), axes.coords_to_point(21 + X_START, s(21 + X_START)), PI*3/4, stroke_width=3)
@@ -238,7 +239,7 @@ class ThreeSteps(Scene):
 
         self.play(Write(sum_1))
 
-
+        text_1.save_state()
         self.play(
             VGroup(text_1, sum_1).animate.scale(0.8).move_to(STEP_X_START*RIGHT + text_1.get_center()*UP + 0.5*UP, LEFT).set_color(GRAY),
             text_2.animate.restore().shift(UP * 0.75)
@@ -297,11 +298,15 @@ class ThreeSteps(Scene):
             sub_text[1].animate.shift(UP * (text_2.get_center() - sub_text[1].get_center()))
         )
 
+        text_2.save_state()
+
         self.play(
             text_2.animate.scale(0.8).move_to(STEP_X_START*RIGHT + DOWN, LEFT).set_color(GRAY),
             sub_text[1].animate.set_color(GRAY).shift(LEFT),
             text_3.animate.restore().shift(UP)
         )
+
+        sum_2 = sub_text[1]
 
 
 
@@ -351,6 +356,66 @@ class ThreeSteps(Scene):
                 lag_ratio = 0.7
             )
         )
+        for a in forward_arrows: a.remove_arrow_updater()
+        self.remove(*forward_arrows)
+
+        self.remove(*sub_text, *sub_text[3])
+        sub_text = MathTex("-\,f(x+n) - \\cdots - f(x+2) - f(x+1)").scale(0.8).move_to(DOWN * 3)
+        new_sub_text = MathTex("-\,f(x+n) - \\cdots - f(x+2) - f(x+1)", "\ =\ -\,\\sum_{k=1}^n f(x+k)").scale(0.8).move_to(DOWN * 3)
+
+        self.play(
+            Transform(sub_text[0], new_sub_text[0]),
+            FadeIn(new_sub_text[1], shift = LEFT * 2)
+        )
+
+        self.remove(*sub_text, *new_sub_text)
+        sub_text = MathTex("-\,f(x+n) - \\cdots - f(x+2) - f(x+1)\ =\ ", "-\,\\sum_{k=1}^n f(x+k)").scale(0.8).move_to(DOWN * 3)
+        self.add(sub_text)
+
+        self.play(fade_and_shift_out(sub_text[0], LEFT))
+
+        sum_3 = sub_text[1]
+
+
+        new_sum_1 = MathTex("\\sum_{k=1}^n f(k)").move_to(UP*2 + RIGHT * 4)
+        new_sum_2 = MathTex("+\,\\sum_{k=1}^x f(n + k)")
+        new_sum_2.shift(RIGHT * (new_sum_1.get_left() - new_sum_2[0][2].get_left()))
+        new_sum_3 = MathTex("-\,\\sum_{k=1}^n f(x + k)")
+        new_sum_3.shift(DOWN*2 + RIGHT * (new_sum_1.get_left() - new_sum_3[0][2].get_left()))
+
+
+        self.play(
+            VGroup(axes, *dots, s_n_text, s_n_arrow, x_line, x_text, n_line, n_text, npx_line, npx_text).animate(rate_func = lambda x: 2*smooth(x/2)).shift(UP * 4.2),
+
+            text_1.animate(run_time=2).restore().move_to(UP*2 + RIGHT*(STEP_X_START - 0.5), LEFT),
+            Transform(sum_1, new_sum_1, run_time=2),
+
+            text_2.animate(run_time=2).restore().move_to(RIGHT*(STEP_X_START - 0.5), LEFT),
+            Transform(sum_2, new_sum_2[0], run_time=2),
+
+            text_3.animate(run_time=2).move_to(DOWN*2 + RIGHT*(STEP_X_START - 0.5), LEFT),
+            Transform(sum_3, new_sum_3[0], run_time=2),
+        )
+        self.remove(*axes, *dots, s_n_text, s_n_arrow, x_line, x_text, n_line, n_text, npx_line, npx_text)
+
+
+        final_text = MathTex("S(x) =", "\\sum_{k=1}^n f(k)", "+ \\sum_{k=1}^x f(n + k)", "- \\sum_{k=1}^n f(x + k)")
+
+        self.play(
+            LaggedStart(
+                AnimationGroup(
+                    Transform(sum_1[0], final_text[1]),
+                    Transform(sum_2, final_text[2]),
+                    Transform(sum_3, final_text[3]),
+                    VGroup(text_1, text_2, text_3).animate.shift(LEFT * 10),
+                    run_time = 2
+                ),
+                Write(final_text[0]),
+                lag_ratio = 0.7
+            )
+        )
+
+        self.wait()
 
 
 

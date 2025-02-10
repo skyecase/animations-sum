@@ -1,5 +1,4 @@
 from typing import Union
-import random
 from manim import ValueTracker, Scene, Mobject
 import manim
 import numpy as np
@@ -13,13 +12,6 @@ def create_time_getter(scene: Scene, debug = False):
         if(debug): print(vt.get_value())
     vt.add_updater(updater)
     return lambda: vt.get_value()
-
-def squiggles(x, time):
-    if x == 0: return 0
-    term_1 = np.sin(np.log(x) / np.log(1.1) - 2 * time) / 70
-    term_2 = np.sin(np.log(x) / np.log(1.06) + 3 * time) / 200
-    term_3 = np.sin(np.log(x) / np.log(1.2) + 3 * time) / 70
-    return term_1 + term_2 + term_3
 
 class UpdaterContainer(Mobject):
     def __init__(self, scene):
@@ -183,6 +175,16 @@ def morph_text(
 
 
 def get_wait_function(scene: manim.Scene, map: list = None, show_numbers: bool = False, default_wait_time = 1):
+    """
+    This function takes in list of wait times and returns a function. When you call the returned function
+    for the nth time, your scene will wait for the amount specified in the nth index of the list.
+
+    This is useful for when you have some updater in the background, so you can't just freeze a frame in post.
+    Rather than searching for your scene for all the wait times, you can adjust them in the list.
+
+    If `show_numbers` is true, the index of each call to the returned function will appear in the corner
+    of the frame when it is called, so you can know which index to modify.
+    """
     if map == None: map = []
     current_index = 0
 
@@ -264,6 +266,11 @@ def normalize_point_speed(points: list[np.array], segment_length = 0.1):
 
 
 class CustomLaggedStart(manim.LaggedStart):
+    """
+    Rather than a single lag ratio, you pass in a function which
+    takes in the index of the animation and the total number of animations
+    and returns the desired delay for that particular animation.
+    """
     def __init__(
         self,
         *animations: manim.Animation,
@@ -289,3 +296,26 @@ class CustomLaggedStart(manim.LaggedStart):
         self.anims_with_timings["anim"] = self.animations
         self.anims_with_timings["start"][1:] = np.add.accumulate(lags)
         self.anims_with_timings["end"] = self.anims_with_timings["start"] + run_times
+
+
+
+def highlight(mobject: manim.VMobject, color=None, **kwargs):
+
+    def get_all_mobjects(mobject: manim.VMobject) -> list[manim.VMobject]:
+        mobjects = []
+        if mobject.submobjects != None and len(mobject.submobjects) != 0:
+            for submobject in mobject.submobjects:
+                mobjects += get_all_mobjects(submobject)
+        else:
+            mobjects.append(mobject)
+        return mobjects
+    
+    mobjects = get_all_mobjects(mobject)
+
+    for mobj in mobjects:
+        if mobj.stroke_width == None:
+            mobj.set_stroke(width=0)
+
+    if color is not None:
+        return manim.AnimationGroup(*[mobj.animate(**kwargs).scale(1.1).set_stroke(width=1.5).set_color(color) for mobj in mobjects])
+    return manim.AnimationGroup(*[mobj.animate(**kwargs).scale(1.1).set_stroke(width=1.5) for mobj in mobjects])

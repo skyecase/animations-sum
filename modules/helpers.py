@@ -299,23 +299,34 @@ class CustomLaggedStart(manim.LaggedStart):
 
 
 
-def highlight(mobject: manim.VMobject, color=None, **kwargs):
+def get_all_mobjects(mobject: manim.VMobject) -> list[manim.VMobject]:
+    """
+    Returns a flattened list of all leaf mobjects.
+    """
+    mobjects = []
+    if mobject.submobjects != None and len(mobject.submobjects) != 0:
+        for submobject in mobject.submobjects:
+            mobjects += get_all_mobjects(submobject)
+    else:
+        mobjects.append(mobject)
+    return mobjects
 
-    def get_all_mobjects(mobject: manim.VMobject) -> list[manim.VMobject]:
-        mobjects = []
-        if mobject.submobjects != None and len(mobject.submobjects) != 0:
-            for submobject in mobject.submobjects:
-                mobjects += get_all_mobjects(submobject)
-        else:
-            mobjects.append(mobject)
-        return mobjects
+
+def highlight(mobject: manim.VMobject, color=None):
+    mobjects = get_all_mobjects(mobject)
+
+    for mobj in mobjects:
+        mobj.scale(1.1).set_stroke(width=1.5)
+        if color: mobj.set_color(color)
     
+    return mobject
+
+
+def highlight_animation(mobject: manim.VMobject, color=None, **kwargs):
     mobjects = get_all_mobjects(mobject)
 
     for mobj in mobjects:
         if mobj.stroke_width == None:
             mobj.set_stroke(width=0)
 
-    if color is not None:
-        return manim.AnimationGroup(*[mobj.animate(**kwargs).scale(1.1).set_stroke(width=1.5).set_color(color) for mobj in mobjects])
-    return manim.AnimationGroup(*[mobj.animate(**kwargs).scale(1.1).set_stroke(width=1.5) for mobj in mobjects])
+    return mobject.animate(**kwargs).become(highlight(mobject.copy(), color))

@@ -50,7 +50,7 @@ class OrderOne(Scene):
 
         self.play(highlight_animation(text[2:4], BLUE))
 
-        equation = MathTex("f(a + b) = f(a) +", "\\sum_{k=1}^b", "\\Delta f(a + k", ")").move_to(DOWN*1.5)
+        equation = MathTex("f(a + b) = f(a) +", "\\sum_{k=0}^{b-1}", "\\Delta f(a + k", ")").move_to(DOWN*1.5)
 
         self.play(fade_and_shift_in(equation, UP))
 
@@ -59,7 +59,7 @@ class OrderOne(Scene):
             highlight_animation(text[2][-1], RED),
             highlight_animation(text[1][2], RED),
             highlight_animation(equation[2][-1], RED),
-            highlight_animation(equation[1][2], RED),
+            highlight_animation(equation[1][4], RED),
         )
 
         new_text = MathTex("S(x) = \\lim_{n \\to \\infty} \\left(\\sum_{k=1}^n (f(k) - f(x + k)) +", "\\sum_{k_1=1}^x", "f(n + k_", "1", ")", "\\right)").move_to(UP)
@@ -71,12 +71,12 @@ class OrderOne(Scene):
             grow_between(new_text[1][3], text[1][2], text[1][3])
         )
 
-        new_equation = MathTex("f(a + b) = f(a) +", "\\sum_{k_2=1}^b", "\\Delta f(a + k_", "2", ")").move_to(DOWN*1.5)
+        new_equation = MathTex("f(a + b) = f(a) +", "\\sum_{k_2=0}^{b-1}", "\\Delta f(a + k_", "2", ")").move_to(DOWN*1.5)
         self.play(
             morph_text(equation, new_equation, [0, None, 2, 4], ignore_1=[1], ignore_2=[1]),
-            Transform(equation[1][0:3], new_equation[1][0:3]),
-            Transform(equation[1][3:], new_equation[1][4:]),
-            grow_between(new_equation[1][3], equation[1][2], equation[1][3])
+            Transform(equation[1][0:5], new_equation[1][0:5]),
+            Transform(equation[1][5:], new_equation[1][6:]),
+            grow_between(new_equation[1][5], equation[1][4], equation[1][5])
         )
 
 
@@ -84,18 +84,18 @@ class OrderOne(Scene):
 
         text = MathTex("S(x) = \\lim_{n \\to \\infty} \\left(\\sum_{k=1}^n (f(k) - f(x + k)) +", "\\sum_{k_1=1}^x", "f(n + k_1)", "\\right)").move_to(UP)
         highlight(text[2], BLUE)
-        equation = MathTex("f(", "a", "+ b) = f(", "a", ") + \\sum_{k_2=1}^b \\Delta f(", "a", "+ k_2)").move_to(DOWN*1.5)
+        equation = MathTex("f(", "a", "+ b) = f(", "a", ") + \\sum_{k_2=0}^{b-1} \\Delta f(", "a", "+ k_2)").move_to(DOWN*1.5)
         self.add(text, equation)
 
         self.play(highlight_animation(VGroup(equation[1], equation[3], equation[5]), YELLOW))
-        new_equation = MathTex("f(", "n", "+ b) = f(", "n", ") + \\sum_{k_2=1}^b \\Delta f(", "n", "+ k_2)").move_to(DOWN*1.5)
+        new_equation = MathTex("f(", "n", "+ b) = f(", "n", ") + \\sum_{k_2=0}^{b-1} \\Delta f(", "n", "+ k_2)").move_to(DOWN*1.5)
         self.play(Transform(equation, new_equation))
 
         self.remove(equation)
-        equation = MathTex("f(n +", "b", ") = f(n) +", "\\sum_{k_2=1}^b", "\\Delta f(n + k_2)").move_to(DOWN*1.5)
+        equation = MathTex("f(n +", "b", ") = f(n) +", "\\sum_{k_2=0}^{b-1}", "\\Delta f(n + k_2)").move_to(DOWN*1.5)
         self.add(equation)
 
-        new_equation = MathTex("f(n +", "k_1", ") = f(n) +", "\\sum_{k_2=1}^{k_1}", "\\Delta f(n + k_2)").move_to(DOWN*1.5)
+        new_equation = MathTex("f(n +", "k_1", ") = f(n) +", "\\sum_{k_2=0}^{k_1-1}", "\\Delta f(n + k_2)").move_to(DOWN*1.5)
         self.play(highlight_animation(VGroup(equation[1], equation[3][0]), YELLOW))
 
         self.play(
@@ -107,18 +107,21 @@ class OrderOne(Scene):
         self.play(highlight_animation(text[1], BLUE))
 
         self.remove(*equation, *new_equation, *equation[3])
-        equation = MathTex("f(n + k_1)", "=", "f(n) + \\sum_{k_2=1}^{k_1} \\Delta f(n + k_2)").move_to(DOWN*1.5)
+        equation = MathTex("f(n + k_1)", "=", "f(n) + \\sum_{k_2=0}^{k_1-1} \\Delta f(n + k_2)").move_to(DOWN*1.5)
         self.add(equation)
 
-        new_equation = MathTex("\\sum_{k_1=1}^x", "f(n + k_1)", "=", "\\sum_{k_1=1}^x \\left(", "f(n) + \\sum_{k_2=1}^{k_1} \\Delta f(n + k_2)", "\\right)").move_to(DOWN*1.5)
+        new_equation = MathTex("\\sum_{k_1=1}^x", "f(n + k_1)", "=", "\\sum_{k_1=1}^x \\left(", "f(n) + \\sum_{k_2=0}^{k_1-1} \\Delta f(n + k_2)", "\\right)").move_to(DOWN*1.5)
         highlight(new_equation[0:2], color=BLUE)
+        new_equation[0].save_state()
+        new_equation[0].scale(0).set_color(BLACK).set_stroke(width=0).move_to(equation[0].get_left())
         self.play(
-            morph_text(equation, new_equation, [1, 2, 4])
+            morph_text(equation, new_equation, [1, 2, 4], ignore_2=[0]),
+            new_equation[0].animate.restore()
         )
 
         self.remove(*new_equation, *equation)
-        equation = MathTex("\\sum_{k_1=1}^x f(n + k_1)", "=", "\\sum_{k_1=1}^x", "\\left(", "f(n) +", "\\sum_{k_2=1}^{k_1} \\Delta f(n + k_2)", "\\right)").move_to(DOWN*1.5)
-        new_equation = MathTex("\\sum_{k_1=1}^x f(n + k_1)", "=", "\\sum_{k_1=1}^x", "f(n) +", "\\sum_{k_1=1}^x", "\\sum_{k_2=1}^{k_1} \\Delta f(n + k_2)").move_to(DOWN*1.5)
+        equation = MathTex("\\sum_{k_1=1}^x f(n + k_1)", "=", "\\sum_{k_1=1}^x", "\\left(", "f(n) +", "\\sum_{k_2=0}^{k_1-1} \\Delta f(n + k_2)", "\\right)").move_to(DOWN*1.5)
+        new_equation = MathTex("\\sum_{k_1=1}^x f(n + k_1)", "=", "\\sum_{k_1=1}^x", "f(n) +", "\\sum_{k_1=1}^x", "\\sum_{k_2=0}^{k_1-1} \\Delta f(n + k_2)").move_to(DOWN*1.5)
         highlight(VGroup(new_equation[0], equation[0]), color=BLUE)
         self.add(equation)
 
@@ -130,10 +133,10 @@ class OrderOne(Scene):
         )
 
         self.remove(*equation, *new_equation, sum_copy)
-        equation = MathTex("\\sum_{k_1=1}^x f(n + k_1)", "=", "\\sum_{k_1=1}^x f(n) + \\sum_{k_1=1}^x \\sum_{k_2=1}^{k_1} \\Delta f(n + k_2)").move_to(DOWN*1.5)
+        equation = MathTex("\\sum_{k_1=1}^x f(n + k_1)", "=", "\\sum_{k_1=1}^x f(n) + \\sum_{k_1=1}^x \\sum_{k_2=0}^{k_1-1} \\Delta f(n + k_2)").move_to(DOWN*1.5)
         highlight(equation[0], BLUE)
         self.add(equation)
-        new_text = MathTex("S(x) = \\lim_{n \\to \\infty} \\left(\\sum_{k=1}^n (f(k) - f(x + k)) +", "\\sum_{k_1=1}^x f(n) + \\sum_{k_1=1}^x \\sum_{k_2=1}^{k_1} \\Delta f(n + k_2)", "\\right)").scale(0.85)
+        new_text = MathTex("S(x) = \\lim_{n \\to \\infty} \\left(\\sum_{k=1}^n (f(k) - f(x + k)) +", "\\sum_{k_1=1}^x f(n) + \\sum_{k_1=1}^x \\sum_{k_2=0}^{k_1-1} \\Delta f(n + k_2)", "\\right)").scale(0.85)
 
 
         self.play(
@@ -145,7 +148,7 @@ class OrderOne(Scene):
         )
 
         self.remove(*text, *equation)
-        text = MathTex("S(x) = \\lim_{n \\to \\infty} \\left(\\sum_{k=1}^n (f(k) - f(x + k)) + \\sum_{k_1=1}^x f(n)", "+", "\\sum_{k_1=1}^x \\sum_{k_2=1}^{k_1}", "\\Delta f(n + k_2)", "\\right)").scale(0.85)
+        text = MathTex("S(x) = \\lim_{n \\to \\infty} \\left(\\sum_{k=1}^n (f(k) - f(x + k)) + \\sum_{k_1=1}^x f(n)", "+", "\\sum_{k_1=1}^x \\sum_{k_2=0}^{k_1-1}", "\\Delta f(n + k_2)", "\\right)").scale(0.85)
         self.add(text)
 
         self.play(top_text.animate.scale(1/0.8).shift(DOWN * 0.5))

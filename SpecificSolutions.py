@@ -140,6 +140,66 @@ class OrderOne(Scene):
             Transform(text[0], new_text[0]),
             Transform(text[3], new_text[2]),
             Transform(equation[2], new_text[1]),
-            FadeOut(text[1:3], shift=UP*0.5),
-            FadeOut(equation[0:2], shift=DOWN)
+            text[1:3].animate.shift(UP*0.75).set_color(BLACK),
+            equation[0:2].animate.shift(DOWN).set_color(BLACK),
+        )
+
+        self.remove(*text, *equation)
+        text = MathTex("S(x) = \\lim_{n \\to \\infty} \\left(\\sum_{k=1}^n (f(k) - f(x + k)) + \\sum_{k_1=1}^x f(n)", "+", "\\sum_{k_1=1}^x \\sum_{k_2=1}^{k_1}", "\\Delta f(n + k_2)", "\\right)").scale(0.85)
+        self.add(text)
+
+        self.play(top_text.animate.scale(1/0.8).shift(DOWN * 0.5))
+
+        brace = Brace(text[3], buff=0.4, color=BLUE)
+        brace_text = MathTex("\\to 0", color=BLUE).move_to(brace.get_bottom() + DOWN*0.1, UP)
+
+        self.play(
+            highlight_animation(text[3], color=BLUE),
+            fade_and_shift_in(VGroup(brace, brace_text), UP*0.5)
+        )
+
+
+        new_brace = Brace(VGroup(text[2:4]), color=BLUE)
+        new_brace_text = MathTex("\\to 0", color=BLUE).move_to(new_brace.get_bottom() + DOWN*0.1, UP)
+
+
+        self.play(
+            Transform(brace, new_brace),
+            Transform(brace_text, new_brace_text),
+            highlight_animation(text[2], color=BLUE)
+        )
+
+
+        new_text = MathTex("S(x) = \\lim_{n \\to \\infty} \\left(\\sum_{k=1}^n (f(k) - f(x + k)) + \\sum_{k_1=1}^x f(n)", "\\right)")
+        self.play(
+            morph_text(text, new_text, [0, None, None, None, 1]),
+            shrink_between(VGroup(brace, brace_text), new_text[0], new_text[1])
+        )
+
+        self.remove(*new_text, *text)
+
+        text = MathTex("S(x) = \\lim_{n \\to \\infty} \\left(\\sum_{k=1}^n (f(k) - f(x + k)) +", "\\sum_{k_1=1}^x f(n)", "\\right)")
+        self.add(text)
+
+        sum_copy = text[1].copy()
+        text[1].set_color(DARK_GRAY)
+
+        self.play(
+            sum_copy.animate.move_to(DOWN * 2),
+            text.animate.shift(UP * 0.5)
+        )
+
+        new_equation = MathTex("\\sum_{k_1=1}^x f(n)", "=", "x f(n)").move_to(DOWN * 2)
+        self.play(
+            Transform(sum_copy, new_equation[0]),
+            FadeIn(new_equation[1:], shift = LEFT * 2)
+        )
+
+        new_text = MathTex("S(x) = \\lim_{n \\to \\infty} \\left(\\sum_{k=1}^n (f(k) - f(x + k)) +", "xf(n)", "\\right)").move_to(UP * 0.5)
+
+        self.play(Transform(text, new_text))
+
+        self.play(
+            text.animate.move_to(ORIGIN),
+            FadeOut(VGroup(new_equation[1:], sum_copy), shift = DOWN)
         )

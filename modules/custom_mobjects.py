@@ -3,6 +3,7 @@ import manim
 import numpy as np
 import math
 from modules.helpers import cubic_out
+from modules.interpolation import quadratic_in, cubic_out
 
 class FullscreenAxes(VGroup):
     def __init__(
@@ -271,3 +272,41 @@ class DottedLine(manim.VMobject):
         
         super().__init__(**kwargs)
         self.set_points(points)
+
+
+class CheckMark(manim.VMobject):
+    manim.Square
+    def __init__(
+            self,
+            position = ORIGIN,
+            aligned_edge = RIGHT,
+            buff = 0.2,
+            color = manim.ManimColor("#6beb31"),
+            joint_type: manim.LineJointType | None = manim.LineJointType.ROUND,
+            cap_style: manim.CapStyleType | None = manim.CapStyleType.ROUND,
+            stroke_width = 6,
+            **kwargs
+    ):
+        super().__init__(joint_type=joint_type, cap_style=cap_style, color=color, stroke_width=stroke_width, **kwargs)
+        self.set_points([
+            [0, 0, 0],
+            [0.681639, -0.21439, 0],
+            [1.270686, -0.70656, 0],
+            [1.794158, -1.39545, 0],
+
+            [1.794158, -1.39545, 0],
+            [1.794158+0.706821, -1.39545+1.51986, 0],
+            [1.794158+1.342334, -1.39545+3.05161, 0],
+            [1.794158+2.968567, -1.39545+4.41824, 0],
+        ])
+
+        self.scale_to_fit_height(0.5)
+        self.move_to(position, aligned_edge).shift(-aligned_edge * buff)
+
+    
+    def create_animation(self, **kwargs):
+        def thing(t):
+            CUT_OFF = 0.2
+            if t < CUT_OFF: return (t/CUT_OFF) * CUT_OFF
+            return CUT_OFF + cubic_out((t-CUT_OFF))*(1-CUT_OFF)
+        return manim.Create(self, rate_func=thing, **kwargs)

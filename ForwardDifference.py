@@ -227,9 +227,52 @@ class ForwardDifferenceIntroduction(Scene):
         self.play(Transform(text, new_text))
 
         self.remove(*text, *new_text, *recursive_text)
-        new_text = Tex("$S(x)$ flattens out if  $\\displaystyle \\lim_{x \\to \\infty} (S(x+1) - S(x)) = 0$.").move_to(UP)
+        text = Tex("$S(x)$ flattens out if ", "$\\displaystyle \\lim_{x \\to \\infty} (S(x+1) - S(x)) = 0$", ".").move_to(UP)
         recursive_text = MathTex("\\lim_{x \\to \\infty} (S(x+1) - S(x)) = 0 \\iff \\lim_{x \\to \\infty} f(x) = 0").move_to(DOWN)
         self.play(
             FadeOut(recursive_text, shift = DOWN * 2),
             text.animate.move_to(ORIGIN)
+        )
+
+        new_text = Tex("$f(x)$ flattens out if ", "$\\displaystyle \\lim_{x \\to \\infty} (f(x+1) - f(x)) = 0$", ".")
+        self.play(Transform(text, new_text))
+        equation_part = MathTex("\\lim_{x \\to \\infty}", "(", "f(x+1) -", "f(x)", ")", "= 0").move_to(text[1])
+        text.submobjects[1] = equation_part
+        self.add(text)
+
+
+        fd_text = equation_part[2:4].copy()
+        equation_part[2:4].set_color(DARK_GRAY)
+
+        self.play(
+            text.animate.shift(UP * 2.5),
+            fd_text.animate.move_to(DOWN).scale(1.2)
+        )
+
+
+        fd_title = Tex("The Forward Difference of $f$")
+        self.play(Write(fd_title))
+
+        new_fd_text = MathTex("\\Delta f(x) =", "f(x+1) -", "f(x)").scale(1.2).move_to(DOWN)
+        self.play(
+            Transform(fd_text, new_fd_text[1:]),
+            FadeIn(new_fd_text[0], shift = RIGHT * 2)
+        )
+
+        new_text = Tex("$f(x)$ flattens out if ", "$\\displaystyle \\lim_{x \\to \\infty} \\Delta f(x) = 0$", ".").move_to(UP * 2.5)
+        equation_part = MathTex("\\lim_{x \\to \\infty}", "\\Delta", "f(x)", "= 0").move_to(new_text[1])
+        new_text.submobjects[1] = equation_part
+        self.play(
+            Transform(text[0], new_text[0]),
+            Transform(text[2], new_text[2]),
+            morph_text(text[1], new_text[1], [0, None, 1, 2, None, 3])
+        )
+
+
+        self.remove(*text, *new_text, *text[1], *new_text[1], *fd_text)
+        text = Tex("$f(x)$ flattens out if $\\displaystyle \\lim_{x \\to \\infty} \\Delta f(x) = 0$.").move_to(UP * 2.5)
+
+        self.play(
+            text.animate.shift(UP * 2),
+            VGroup(new_fd_text, fd_title).animate.move_to(ORIGIN)
         )

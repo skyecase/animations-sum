@@ -65,7 +65,7 @@ def fade_and_shift_out(mobject: manim.VMobject, shift: np.array = manim.ORIGIN, 
         for i in range(len(leaf_mobjects)):
             leaf_mobjects[i].set_stroke(opacity = target_stroke_opacities[i] * (1 - fade_rate_func(alpha)))
             leaf_mobjects[i].set_fill(opacity = target_fill_opacities[i] * (1 - fade_rate_func(alpha)))
-    return manim.UpdateFromAlphaFunc(mobject, update_func, rate_func = manim.linear, **kwargs)
+    return manim.UpdateFromAlphaFunc(mobject, update_func, rate_func = manim.linear, remover=True, **kwargs)
 
 
 
@@ -337,3 +337,10 @@ def highlight_animation(mobject: manim.VMobject, color=None, **kwargs):
             mobj.set_stroke(width=0)
 
     return mobject.animate(**kwargs).become(highlight(mobject.copy(), color))
+
+
+
+def rotate_points(mobj: manim.Mobject, num: int):
+    points_list = list(mobj.points)
+    mobj.points = np.array(points_list[num:] + points_list[:num])
+    return mobj

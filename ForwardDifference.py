@@ -380,3 +380,175 @@ class DiscreteContinuous(Scene):
             VGroup(recursive_text, arrow_delta, arrow_sigma, f, s, right_arrow, left_arrow).animate.shift(RIGHT * 7.5),
             rate_func=cubic_in
         )
+
+
+
+class SuperRecursive(Scene):
+    def construct(self):
+
+        text = MathTex("\\Delta f(x) = f(x+1)", "-", "f(x)")
+        self.add(text)
+        new_text = MathTex("f(x)", "+", "\\Delta f(x) = f(x+1)")
+        self.play(morph_text(text, new_text, [[2, {"path_arc":0}], 1, 0], path_arc=PI*0.85))
+
+        self.remove(*text, *new_text)
+        text = MathTex("f(x) + \\Delta f(x)", "=", "f(x+1)")
+        new_text = MathTex("f(x+1)", "=", "f(x) + \\Delta f(x)")
+        self.play(morph_text(text, new_text, [2, [1, {"path_arc": 0}], 0], path_arc=PI*0.85))
+
+
+        def f(x):
+            return x**3 / 30 - x/3
+        
+        SCALE = 1.8
+        
+        invisible_axes = FullscreenAxes(self, DOWN*1.5, [SCALE, SCALE])
+
+        right_side = invisible_axes.point_to_coords((self.camera.frame_width/2 + 0.1) * RIGHT)[0]
+
+        curve = ParametricFunction(lambda t: invisible_axes.coords_to_point(t, f(t)), [-right_side, right_side], color=RED)
+
+        self.play(
+            LaggedStart(
+                text.animate.move_to(UP * 2.5),
+                Create(curve, rate_func = linear),
+                lag_ratio=0.25
+            )
+        )
+
+
+        dot_0 = Dot(invisible_axes.coords_to_point(-3, f(-3)), 0.12, color=BLUE).scale(1.5)
+        f_a_text = MathTex("f(a)").move_to(dot_0.get_center() + DOWN * 0.5, UP)
+
+        self.play(
+            FadeIn(dot_0, scale=3, rate_func=bounce()),
+            fade_and_shift_in(f_a_text, UP)
+        )
+
+        dot_6 = Dot(invisible_axes.coords_to_point(3, f(3)), 0.12, color=BLUE).scale(1.5)
+        f_a_b_text = MathTex("f(a+b)").move_to(dot_6.get_center() + DOWN * 0.5, UP)
+
+        self.play(
+            FadeIn(dot_6, scale=3, rate_func=bounce()),
+            fade_and_shift_in(f_a_b_text, UP)
+        )
+
+
+        dots = [dot_0] + [Dot(invisible_axes.coords_to_point(i, f(i)), 0.12, color=BLUE) for i in range(-2, 3)] + [dot_6]
+
+        arrows = [CustomArrow(dots[i].get_center(), dots[i+1].get_center(), PI*0.6, buff=0.2) for i in range(0, 6)]
+        self.add(*arrows)
+
+        arrow_text_0 = MathTex("+\,\\Delta f(a)").scale(0.8).move_to((dots[0].get_center()+dots[1].get_center())/2 + UP + LEFT*0.3 + LEFT*0.3)
+
+        self.play(
+            arrows[0].end_vt.animate(rate_func=cubic_out).set_value(1),
+            FadeIn(arrow_text_0, scale=0, shift=UP*0.75, rate_func=cubic_out),
+            FadeIn(dots[1], scale=3, rate_func=bounce())
+        )
+
+        arrow_text_1 = MathTex("+\,\\Delta f(a+1)").scale(0.8).move_to((dots[1].get_center()+dots[2].get_center())/2 + UP + LEFT*0.3)
+
+        self.play(
+            arrows[1].end_vt.animate(rate_func=cubic_out).set_value(1),
+            FadeIn(arrow_text_1, scale=0, shift=UP*0.75, rate_func=cubic_out),
+            FadeIn(dots[2], scale=3, rate_func=bounce())
+        )
+
+        arrow_text_2 = MathTex("+\,\\Delta f(a+2)").scale(0.8).move_to((dots[2].get_center()+dots[3].get_center())/2 + UP + LEFT*0.3 + RIGHT*0.4)
+
+        self.play(
+            arrows[2].end_vt.animate(rate_func=cubic_out).set_value(1),
+            FadeIn(arrow_text_2, scale=0, shift=UP*0.75, rate_func=cubic_out),
+            FadeIn(dots[3], scale=3, rate_func=bounce())
+        )
+
+        arrow_text_5 = MathTex("+\,\\Delta f(a+b-1)").scale(0.8).move_to((dots[5].get_center()+dots[6].get_center())/2 + UP + LEFT*0.3)
+
+        self.play(
+            LaggedStart(
+                AnimationGroup(
+                    arrows[3].end_vt.animate(rate_func=cubic_out).set_value(1),
+                    FadeIn(dots[4], scale=3, rate_func=bounce())
+                ),
+                AnimationGroup(
+                    arrows[4].end_vt.animate(rate_func=cubic_out).set_value(1),
+                    FadeIn(dots[5], scale=3, rate_func=bounce())
+                ),
+                AnimationGroup(
+                    arrows[5].end_vt.animate(rate_func=cubic_out).set_value(1),
+                    FadeIn(arrow_text_5, scale=0, shift=UP*0.75, rate_func=cubic_out)
+                ),
+                lag_ratio=0.5
+            )
+        )
+
+
+        long_text = MathTex("f(a)", "+ \\Delta f(a)", "+ \\Delta f(a+1)", "+ \\Delta f(a+2)", "+ \\cdots", "+ \\Delta f(a+b-1)", "=", "f(a+b)").scale(0.8).move_to(UP)
+
+        self.play(
+            Transform(f_a_text[0], long_text[0]),
+            Transform(arrow_text_0[0], long_text[1]),
+            Transform(arrow_text_1[0], long_text[2]),
+            Transform(arrow_text_2[0], long_text[3]),
+            grow_between(long_text[4], arrow_text_2, arrow_text_5),
+            Transform(arrow_text_5[0], long_text[5]),
+            grow_between(long_text[6], arrow_text_5, f_a_b_text),
+            Transform(f_a_b_text[0], long_text[7])
+        )
+
+        for a in arrows: a.remove_arrow_updater()
+
+
+        self.remove(*f_a_text, *f_a_b_text, *arrow_text_0, *arrow_text_1, *arrow_text_2, *arrow_text_5, *long_text)
+
+        self.add(long_text)
+
+        new_long_text = MathTex("f(a) +", "\\Delta f(a) + \\Delta f(a+1) + \\Delta f(a+2) + \\cdots + \\Delta f(a+b-1)", "= f(a+b)").scale(0.8)
+        brace = Brace(new_long_text[1])
+        brace_text = MathTex("\\sum_{k=0}^{b-1} \\Delta f(a+k)").move_to(brace.get_bottom() + DOWN * 0.2, UP)
+
+        self.play(
+            VGroup(curve, *arrows, *dots).animate.shift(DOWN*4),
+            long_text.animate.move_to(ORIGIN),
+            FadeIn(brace, shift=DOWN/2)
+        )
+        self.remove(curve, *arrows, *dots)
+
+        self.play(
+            fade_and_shift_in(brace_text, UP)
+        )
+
+        self.remove(*long_text)
+        long_text = new_long_text
+        self.add(long_text)
+
+        new_long_text = MathTex("f(a) +", "\\sum_{k=0}^{b-1} \\Delta f(a+k)", "= f(a+b)")
+
+        shift = new_long_text[1].get_center() - brace_text.get_center()
+
+        self.play(
+            LaggedStart(
+                AnimationGroup(
+                    brace_text.animate.shift(shift),
+                    FadeOut(VGroup(brace, long_text[1]), shift=shift),
+                ),
+                AnimationGroup(
+                    Transform(long_text[0], new_long_text[0], rate_func = bounce()),
+                    Transform(long_text[2], new_long_text[2], rate_func = bounce()),
+                    run_time = 1.5
+                ),
+                lag_ratio=0.5
+            )
+        )
+
+        self.remove(*long_text, *new_long_text, brace_text)
+        long_text = MathTex("f(a) + \\sum_{k=0}^{b-1} \\Delta f(a+k)", "=", "f(a+b)")
+        new_long_text = MathTex("f(a+b)", "=", "f(a) + \\sum_{k=0}^{b-1} \\Delta f(a+k)")
+        self.play(morph_text(long_text, new_long_text, [2, 1, 0], path_arc=PI*0.75))
+
+        bottom_text = Tex("This is the discrete version of $\\displaystyle\\ f(a+b) = f(a) + \\int_0^b f'(a+t) dt$").scale(0.7).move_to(DOWN*2.5)
+
+        self.play(FadeIn(bottom_text))
+        self.play(FadeOut(bottom_text))
+        self.wait()

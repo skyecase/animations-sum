@@ -276,3 +276,34 @@ class ForwardDifferenceIntroduction(Scene):
             text.animate.shift(UP * 2),
             VGroup(new_fd_text, fd_title).animate.move_to(ORIGIN)
         )
+
+
+
+class DiscreteContinuous(Scene):
+    def construct(self):
+        fd_title = Tex("The Forward Difference of $f$")
+        fd_text = MathTex("\\Delta f(x) = f(x+1) - f(x)").scale(1.2).move_to(DOWN)
+        top_content = VGroup(fd_title, fd_text)
+        top_content.move_to(ORIGIN)
+
+        self.add(top_content)
+
+        self.play(top_content.animate.scale(1/1.2).move_to(UP * 2.5))
+
+
+        discrete_header = Tex("\\underline{Discrete}").move_to(LEFT*3 + UP)
+        continuous_header = Tex("\\underline{Continuous}").move_to(RIGHT*3 + UP)
+
+        self.play(Write(discrete_header), Write(continuous_header))
+
+        sum = MathTex("\\sum").move_to(LEFT*3 + DOWN*1/2)
+        integral = MathTex("\\int").move_to(RIGHT*3 + DOWN*1/2)
+
+        self.add(sum, integral)
+        self.wait()
+
+
+        delta = MathTex("\\Delta").move_to(LEFT*3 + DOWN*3)
+        derivative = MathTex("\\frac d{dx}").move_to(RIGHT*3 + DOWN*3)
+        self.add(derivative, delta)
+        self.wait()

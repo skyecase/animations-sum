@@ -1,7 +1,7 @@
 from manim import *
 from modules.custom_mobjects import CheckMark, CustomArrow, DottedLine, FullscreenAxes, create_axes
 from modules.helpers import create_double_arrow, create_updater_container, fade_and_shift_in, fade_and_shift_out, grow_between, highlight, highlight_animation, morph_text, normalize_point_speed, rotate_points
-from modules.interpolation import bounce, cubic_out, sin_smooth_in, cubic_in
+from modules.interpolation import bounce, cubic_out, sin_smooth_in, cubic_in, cubic_in_out
 
 
 class FlattenOut(Scene):
@@ -375,10 +375,16 @@ class DiscreteContinuous(Scene):
         right_arrow.remove_arrow_updater()
         left_arrow.remove_arrow_updater()
 
+        final_text = MathTex("\\Delta f(x) = f(x+1) - f(x)")
+        final_text.save_state()
+        final_text.scale(0)
+
         self.play(
-            VGroup(discrete_header, discrete_underline, sum, delta, arrow_1, arrow_2, continuous_underline, continuous_header, integral, derivative).animate.shift(LEFT * 7.5),
-            VGroup(recursive_text, arrow_delta, arrow_sigma, f, s, right_arrow, left_arrow).animate.shift(RIGHT * 7.5),
-            rate_func=cubic_in
+            LaggedStart(
+                VGroup(discrete_header, discrete_underline, sum, delta, arrow_1, arrow_2, continuous_underline, continuous_header, integral, derivative).animate(rate_func=cubic_in).shift(LEFT * 7.5),
+                VGroup(recursive_text, arrow_delta, arrow_sigma, f, s, right_arrow, left_arrow).animate(rate_func=cubic_in).shift(RIGHT * 7.5),
+                final_text.animate(scale=0, run_time=1.5, rate_func=cubic_in_out).restore()
+            )
         )
 
 
@@ -545,7 +551,7 @@ class SuperRecursive(Scene):
         self.remove(*long_text, *new_long_text, brace_text)
         long_text = MathTex("f(a) + \\sum_{k=0}^{b-1} \\Delta f(a+k)", "=", "f(a+b)")
         new_long_text = MathTex("f(a+b)", "=", "f(a) + \\sum_{k=0}^{b-1} \\Delta f(a+k)")
-        self.play(morph_text(long_text, new_long_text, [2, 1, 0], path_arc=PI*0.75))
+        self.play(morph_text(long_text, new_long_text, [2, 1, 0], path_arc=-PI*0.8))
 
         bottom_text = Tex("This is the discrete version of $\\displaystyle\\ f(a+b) = f(a) + \\int_0^b f'(a+t) dt$").scale(0.7).move_to(DOWN*2.5)
 

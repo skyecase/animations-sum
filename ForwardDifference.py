@@ -1,7 +1,7 @@
 from manim import *
 from modules.custom_mobjects import CheckMark, CustomArrow, DottedLine, FullscreenAxes, create_axes
 from modules.helpers import create_double_arrow, create_updater_container, fade_and_shift_in, fade_and_shift_out, grow_between, highlight, highlight_animation, morph_text, normalize_point_speed, rotate_points
-from modules.interpolation import bounce, cubic_out, sin_smooth_in
+from modules.interpolation import bounce, cubic_out, sin_smooth_in, cubic_in
 
 
 class FlattenOut(Scene):
@@ -326,7 +326,10 @@ class DiscreteContinuous(Scene):
             FadeIn(derivative, scale=0)
         )
 
-        recursive_text = MathTex("S(x+1) -", "S(x) = f(x+1)").move_to(RIGHT*3.5 + UP*1.5)
+
+        RIGHT_CENTER_H = 3.5
+
+        recursive_text = MathTex("S(x+1) -", "S(x) = f(x+1)").move_to(RIGHT*RIGHT_CENTER_H + UP*1.5)
 
         self.play(
             VGroup(discrete_header, discrete_underline, sum, delta).animate.shift(LEFT * 3),
@@ -337,4 +340,43 @@ class DiscreteContinuous(Scene):
         )
 
 
-        self.play(Transform(recursive_text, MathTex("\\Delta", "S(x) = f(x+1)").move_to(RIGHT*3.5 + UP*1.5)))
+        self.play(Transform(recursive_text, MathTex("\\Delta", "S(x) = f(x+1)").move_to(RIGHT*RIGHT_CENTER_H + UP*1.5)))
+
+
+
+        f = MathTex("f").move_to(DOWN*1.25 + RIGHT*(RIGHT_CENTER_H - 1.25)).scale(1.25)
+        s = MathTex("S").move_to(DOWN*1.25 + RIGHT*(RIGHT_CENTER_H + 1.25)).scale(1.25)
+
+
+        self.play(fade_and_shift_in(f, UP))
+
+        right_arrow = CustomArrow(f.get_center(), s.get_center(), buff=0.4)
+        self.add(right_arrow)
+
+        arrow_sigma = MathTex("\\Sigma").move_to((f.get_center() + s.get_center())/2 + UP)
+
+        self.play(
+            right_arrow.end_vt.animate(rate_func=cubic_out).set_value(1),
+            FadeIn(arrow_sigma, scale=0, shift=UP*0.5, rate_func=cubic_out),
+            FadeIn(s, scale=0)
+        )
+
+
+        left_arrow = CustomArrow(s.get_center(), f.get_center(), buff=0.4)
+        self.add(left_arrow)
+
+        arrow_delta = MathTex("\\Delta").move_to((f.get_center() + s.get_center())/2 + DOWN)
+
+        self.play(
+            left_arrow.end_vt.animate(rate_func=cubic_out).set_value(1),
+            FadeIn(arrow_delta, scale=0, shift=DOWN*0.5, rate_func=cubic_out),
+        )
+
+        right_arrow.remove_arrow_updater()
+        left_arrow.remove_arrow_updater()
+
+        self.play(
+            VGroup(discrete_header, discrete_underline, sum, delta, arrow_1, arrow_2, continuous_underline, continuous_header, integral, derivative).animate.shift(LEFT * 7.5),
+            VGroup(recursive_text, arrow_delta, arrow_sigma, f, s, right_arrow, left_arrow).animate.shift(RIGHT * 7.5),
+            rate_func=cubic_in
+        )

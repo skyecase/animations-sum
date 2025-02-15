@@ -1,6 +1,6 @@
 from manim import *
 from modules.custom_mobjects import CheckMark, CustomArrow, DottedLine, FullscreenAxes, create_axes
-from modules.helpers import create_updater_container, fade_and_shift_in, fade_and_shift_out, grow_between, highlight, highlight_animation, morph_text, normalize_point_speed, rotate_points
+from modules.helpers import create_double_arrow, create_updater_container, fade_and_shift_in, fade_and_shift_out, grow_between, highlight, highlight_animation, morph_text, normalize_point_speed, rotate_points
 from modules.interpolation import bounce, cubic_out, sin_smooth_in
 
 
@@ -281,29 +281,60 @@ class ForwardDifferenceIntroduction(Scene):
 
 class DiscreteContinuous(Scene):
     def construct(self):
-        fd_title = Tex("The Forward Difference of $f$")
-        fd_text = MathTex("\\Delta f(x) = f(x+1) - f(x)").scale(1.2).move_to(DOWN)
-        top_content = VGroup(fd_title, fd_text)
-        top_content.move_to(ORIGIN)
 
-        self.add(top_content)
+        DIST_FROM_CENTER = 2.5
 
-        self.play(top_content.animate.scale(1/1.2).move_to(UP * 2.5))
+        discrete_header = Tex("Discrete").move_to(LEFT*DIST_FROM_CENTER + UP*2.5)
+        continuous_header = Tex("Continuous").move_to(RIGHT*DIST_FROM_CENTER + UP*2.5)
+
+        discrete_underline = Line(discrete_header.get_corner(DOWN + LEFT), discrete_header.get_corner(DOWN + RIGHT), stroke_width=3).shift(DOWN * 0.1)
+        continuous_underline = Line(continuous_header.get_corner(DOWN + LEFT), continuous_header.get_corner(DOWN + RIGHT), stroke_width=3).shift(DOWN * 0.1)
+
+        self.play(
+            LaggedStart(
+                Write(discrete_header),
+                Create(discrete_underline, rate_func=cubic_out),
+                Write(continuous_header),
+                Create(continuous_underline, rate_func=cubic_out),
+                lag_ratio = 0.2
+            )
+        )
+
+        sum = MathTex("\\sum").move_to(LEFT*DIST_FROM_CENTER + UP*1/2).scale(1.25)
+        integral = MathTex("\\int").move_to(RIGHT*DIST_FROM_CENTER + UP*1/2).scale(1.25)
+
+        arrow_1 = create_double_arrow(UP*1/2 + LEFT*1.5, UP*1/2 + RIGHT*1.5, tip_length=0.3)
+        arrow_1.save_state()
+        arrow_1.scale(0).set_stroke(width=0).set_color(BLACK)
+
+        self.play(
+            arrow_1.animate.restore(),
+            FadeIn(sum, scale=0),
+            FadeIn(integral, scale=0)
+        )
+
+        delta = MathTex("\\Delta").move_to(LEFT*DIST_FROM_CENTER + DOWN*1.5).scale(2)
+        derivative = MathTex("\\frac d{dx}").move_to(RIGHT*DIST_FROM_CENTER + DOWN*1.5).scale(1.25)
+
+        arrow_2 = arrow_1.copy().move_to(DOWN*1.5)
+        arrow_2.save_state()
+        arrow_2.scale(0).set_stroke(width=0).set_color(BLACK)
+
+        self.play(
+            arrow_2.animate.restore(),
+            FadeIn(delta, scale=0),
+            FadeIn(derivative, scale=0)
+        )
+
+        recursive_text = MathTex("S(x+1) -", "S(x) = f(x+1)").move_to(RIGHT*3.5 + UP*1.5)
+
+        self.play(
+            VGroup(discrete_header, discrete_underline, sum, delta).animate.shift(LEFT * 3),
+            VGroup(continuous_header, continuous_underline, integral, derivative).animate.shift(LEFT * 4.5),
+            arrow_1.animate.become(create_double_arrow(UP*1/2 + LEFT*4.5, UP*1/2 + LEFT*3, tip_length=0.3)),
+            arrow_2.animate.become(create_double_arrow(DOWN*1.5 + LEFT*4.5, DOWN*1.5 + LEFT*3, tip_length=0.3)),
+            FadeIn(recursive_text, shift=LEFT*5)
+        )
 
 
-        discrete_header = Tex("\\underline{Discrete}").move_to(LEFT*3 + UP)
-        continuous_header = Tex("\\underline{Continuous}").move_to(RIGHT*3 + UP)
-
-        self.play(Write(discrete_header), Write(continuous_header))
-
-        sum = MathTex("\\sum").move_to(LEFT*3 + DOWN*1/2)
-        integral = MathTex("\\int").move_to(RIGHT*3 + DOWN*1/2)
-
-        self.add(sum, integral)
-        self.wait()
-
-
-        delta = MathTex("\\Delta").move_to(LEFT*3 + DOWN*3)
-        derivative = MathTex("\\frac d{dx}").move_to(RIGHT*3 + DOWN*3)
-        self.add(derivative, delta)
-        self.wait()
+        self.play(Transform(recursive_text, MathTex("\\Delta", "S(x) = f(x+1)").move_to(RIGHT*3.5 + UP*1.5)))

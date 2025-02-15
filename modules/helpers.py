@@ -344,3 +344,12 @@ def rotate_points(mobj: manim.Mobject, num: int):
     points_list = list(mobj.points)
     mobj.points = np.array(points_list[num:] + points_list[:num])
     return mobj
+
+
+
+def create_double_arrow(start, end, **kwargs):
+    arrow_1 = manim.DoubleArrow(start, end, **kwargs)
+    group = manim.VGroup(arrow_1.submobjects)
+    arrow_1.submobjects = []
+    group.add(arrow_1.scale(1.01).set_stroke(width=manim.DEFAULT_STROKE_WIDTH))
+    return group

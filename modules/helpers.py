@@ -311,7 +311,7 @@ def get_all_mobjects(mobject: manim.VMobject) -> list[manim.VMobject]:
     Returns a flattened list of all leaf mobjects.
     """
     mobjects = []
-    if mobject.points is not None:
+    if mobject.points is not None and len(mobject.points) != 0:
         mobjects.append(mobject)
     if mobject.submobjects != None and len(mobject.submobjects) != 0:
         for submobject in mobject.submobjects:

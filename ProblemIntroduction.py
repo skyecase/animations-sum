@@ -2,7 +2,7 @@ from manim import *
 from math import sqrt, floor
 import math
 from modules.custom_mobjects import FullscreenAxes, create_axes
-from modules.helpers import normalize_point_speed, create_time_getter
+from modules.helpers import fade_and_shift_in, normalize_point_speed, create_time_getter
 from modules.interpolation import bounce, cubic_out
 from numpy import sinc
 
@@ -44,15 +44,18 @@ class ProblemIntroduction(Scene):
     def construct(self):
         axes = FullscreenAxes(self, 5.5*LEFT + 2.5*DOWN)
 
-        self.play(create_axes(self, axes))
-
-        f_text = MathTex("f(x)").move_to(DOWN + LEFT * 0.5)
+        f_text = MathTex("f(x)").move_to(DOWN*1.5 + RIGHT * 5.5).set_color(RED)
         curve = ParametricFunction(lambda t: axes.coords_to_point(t, f(t)), (-2, 13)).set_color(RED)
-        curve.set_points(normalize_point_speed(curve.points))
 
         self.play(
-            Create(curve, rate_func = linear, run_time = 0.7),
-            Write(f_text)
+            LaggedStart(
+                create_axes(self, axes),
+                AnimationGroup(
+                    Create(curve, rate_func = linear, run_time = 0.7),
+                    fade_and_shift_in(f_text, RIGHT)
+                ),
+                lag_ratio=0.5
+            )
         )
 
 

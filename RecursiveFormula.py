@@ -123,7 +123,7 @@ class Recursive(Scene):
             arrow.become(create_arrow(point_1.get_center(), point_2.get_center(), start_vt.get_value(), end_vt.get_value(), angle=PI/2))
         arrow.add_updater(arrow_updater)
 
-        addition_text = MathTex("+ f(2)").scale(0.8).move_to(axes.coords_to_point(1, f(1) + f(2)) + UP * 0.2, DOWN)
+        addition_text = MathTex("+\,f(2)").scale(0.8).move_to(axes.coords_to_point(1, f(1) + f(2)) + UP * 0.2, DOWN)
 
 
         self.play(
@@ -149,7 +149,7 @@ class Recursive(Scene):
             arrow.become(create_arrow(point_2.get_center(), point_3.get_center(), start_vt.get_value(), end_vt.get_value(), angle=PI/2))
         arrow.add_updater(arrow_updater)
 
-        addition_text = MathTex("+ f(3)").scale(0.8).move_to(axes.coords_to_point(2, f(1) + f(2) + f(3)) + UP * 0.2, DOWN)
+        addition_text = MathTex("+\,f(3)").scale(0.8).move_to(axes.coords_to_point(2, f(1) + f(2) + f(3)) + UP * 0.2, DOWN)
 
 
         self.play(
@@ -169,7 +169,7 @@ class Recursive(Scene):
         right_points = [point_3] + [Dot(axes.coords_to_point(i, S(i)), 0.1, color=BLUE) for i in range(4, 12)]
         arrow_things = [None] + [CustomArrow(right_points[i-1].get_center(),
                                             right_points[i].get_center(),
-                                            text=MathTex("+f(" + str(i+3) + ")").scale(0.7).move_to(UP*0.2,  DOWN))
+                                            text=MathTex("+\,f(" + str(i+3) + ")").scale(0.7).move_to(UP*0.2,  DOWN))
                                     for i in range(1, len(right_points))]
 
         self.add(*arrow_things[1:])
@@ -217,20 +217,10 @@ class Recursive(Scene):
 
         self.play(
             LaggedStart(
-                *[fade_and_shift_in(part, LEFT) for part in sub_text],
+                *[fade_and_shift_in(part, LEFT, run_time = 0.75) for part in sub_text],
                 lag_ratio=0.25
             )
         )
-
-        # self.remove(text_2)
-        # text_2 = MathTex("S(x", "+1) = S(x", ") + f(x", "+1)").scale(1.2)
-        # new_text_2 = MathTex("S(x", "-1", "+1) = S(x", "-1" ,") + f(x", "-1", "+1)").scale(1.2)
-        # self.play(morph_text(text_2, new_text_2, [0, 2, 4, 6]))
-
-        # self.remove(*text_2, *new_text_2)
-        # text_2 = MathTex("S(x", "-1+1", ") = S(x-1) + f(x", "-1+1", ")").scale(1.2)
-        # new_text_2 = MathTex("S(x", ") = S(x-1) + f(x", ")").scale(1.2)
-        # self.play(morph_text(text_2, new_text_2, [0, None, 1, None, 2]))
 
         self.remove(text_2)
         text_2 = MathTex("S(x", "+1", ") = S(x", ") + f(x", "+1", ")").scale(1.2)
@@ -242,22 +232,15 @@ class Recursive(Scene):
         self.remove(*text_2, *new_text_2)
         text_2 = MathTex("S(x)", "=", "S(x - 1)", "+ f(x)").scale(1.2)
         text_2.set_z_index(2)
-        new_text_2 = MathTex("S(x)", "- f(x)", "=", "S(x - 1)").scale(1.2)
+        new_text_2 = MathTex("S(x - 1)", "=", "S(x)", "- f(x)").scale(1.2)
         new_text_2.set_z_index(2)
         self.play(
             LaggedStart(
-                fade_and_shift_out(sub_text, DOWN),
-                morph_text(text_2, new_text_2, [0, 2, 3, [1, {"path_arc": -PI*0.8}]]),
-                lag_ratio = 0.5
+                FadeOut(sub_text, shift=DOWN),
+                morph_text(text_2, new_text_2, [2, 1, 0, 3], path_arc=-PI*0.8),
+                lag_ratio = 0.0
             )
         )
-
-        self.remove(*text_2, *new_text_2)
-        text_2 = MathTex("S(x) - f(x)", "=", "S(x - 1)").scale(1.2)
-        text_2.set_z_index(2)
-        new_text_2 = MathTex("S(x - 1)", "=", "S(x) - f(x)").scale(1.2)
-        new_text_2.set_z_index(2)
-        self.play(morph_text(text_2, new_text_2, [[2, {"path_arc": -PI*3/4}], 1, [0, {"path_arc": -PI*3/4}]]))
         
         self.remove(*text_2, *new_text_2)
         text_2 = MathTex("S(x - 1) = S(x) - f(x)").scale(1.2)
@@ -280,7 +263,7 @@ class Recursive(Scene):
             FadeIn(s_text, scale=0, shift=UP * 0.4)
         )
 
-        arrow = CustomArrow(right_points[1].get_center(), point_3.get_center(), angle=PI*3/4, text=MathTex("- f(4)").scale(0.7).move_to(DOWN*0.4, UP))
+        arrow = CustomArrow(right_points[1].get_center(), point_3.get_center(), angle=PI*3/4, text=MathTex("-\,f(4)").scale(0.7).move_to(DOWN*0.4, UP))
         self.add(arrow)
 
         self.play(
@@ -294,7 +277,7 @@ class Recursive(Scene):
         arrow_things = [
             CustomArrow(axes.coords_to_point(i, S(i)),
                        axes.coords_to_point(i-1, S(i-1)),
-                       text=MathTex("-f(" + str(i) + ")").scale(0.7).move_to(DOWN*0.3 + (RIGHT if i > 0 else LEFT)*0.1,  UP))
+                       text=MathTex("-\,f(" + str(i) + ")").scale(0.7).move_to(DOWN*0.3 + (RIGHT if i > 0 else LEFT)*0.1,  UP))
                 for i in reversed(range(-5, 4))]
         self.add(*arrow_things)
 
@@ -368,7 +351,7 @@ class Recursive(Scene):
                        angle = PI*3/4)
             for i in range(0, len(new_right_points) - 1)
         ]
-        right_arrow_things[0].set_text(MathTex("+ f(x + 1)").scale(0.7).move_to(UP * 0.2, DOWN))
+        right_arrow_things[0].set_text(MathTex("+\,f(x + 1)").scale(0.7).move_to(UP * 0.2, DOWN))
         self.add(*right_arrow_things)
 
         self.play(
@@ -384,7 +367,7 @@ class Recursive(Scene):
                        angle = PI*3/4)
             for i in range(0, len(new_left_points) - 1)
         ]
-        left_arrow_things[0].set_text(MathTex("- f(x)").scale(0.7).move_to(DOWN * 0.4, UP))
+        left_arrow_things[0].set_text(MathTex("-\,f(x)").scale(0.7).move_to(DOWN * 0.4, UP))
         self.add(*left_arrow_things)
         self.play(
             FadeIn(new_left_points[1], scale = 3, rate_func = bounce()),

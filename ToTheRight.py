@@ -76,7 +76,7 @@ class Reciprocal(MovingCameraScene):
         arrows = [CustomArrow(dot_0.get_center() + i*DOT_SPREAD*RIGHT, dot_0.get_center() + (i+1)*DOT_SPREAD*RIGHT, angle=PI/2*(1-2*(i%2))) for i in range(0, 7)] # TODO: Remove i%2 part
         self.add(*arrows)
 
-        np1_text = MathTex("+ f(n + 1)").scale(0.8).move_to((dot_0.get_center() + pos_dots[0].get_center())/2 + 0.6*UP, DOWN)
+        np1_text = MathTex("+\,f(n + 1)").scale(0.8).move_to((dot_0.get_center() + pos_dots[0].get_center())/2 + 0.6*UP, DOWN)
 
         self.play(
             arrows[0].end_vt.animate(rate_func=cubic_out).set_value(1),
@@ -92,7 +92,7 @@ class Reciprocal(MovingCameraScene):
 
 
         for i in range(1, len(arrows)):
-            f_text = MathTex("+ f(n + " + str(i+1) + ")").scale(0.8)
+            f_text = MathTex("+\,f(n + " + str(i+1) + ")").scale(0.8)
             pretty_much_text = Tex("(Pretty much 0)").scale(0.5).move_to(f_text.get_bottom() + DOWN*0.1, UP)
             group = VGroup(f_text, pretty_much_text)
 
@@ -224,9 +224,9 @@ class Logarithm(MovingCameraScene):
         arrow_3 = CustomArrow(dot_3.get_center(), dot_4.get_center(), buff=0.25)
         self.add(arrow_1, arrow_2, arrow_3)
 
-        text_1 = MathTex("+ f(n + 1)").scale(0.8).move_to(dot_1.get_center() + UP*1.6 + LEFT*0.75)
-        text_2 = MathTex("+ f(n + 2)").scale(0.8).move_to(dot_2.get_center() + UP*1.6 + LEFT*0.75)
-        text_3 = MathTex("+ f(n + 3)").scale(0.8).move_to(dot_3.get_center() + UP*1.6 + LEFT*0.75)
+        text_1 = MathTex("+\,f(n + 1)").scale(0.8).move_to(dot_1.get_center() + UP*1.6 + LEFT*0.75)
+        text_2 = MathTex("+\,f(n + 2)").scale(0.8).move_to(dot_2.get_center() + UP*1.6 + LEFT*0.75)
+        text_3 = MathTex("+\,f(n + 3)").scale(0.8).move_to(dot_3.get_center() + UP*1.6 + LEFT*0.75)
 
         self.play(
             LaggedStart(

@@ -66,8 +66,14 @@ class Transformation(Scene):
         )
 
         self.remove(*text, *new_text, sum)
-        text = MathTex("S(x) = \\lim_{n\\to\\infty}\\left(\\sum_{k=1}^{n-1} (f(k) - f(x + k)) +", "\\sum_{k=0}^{x-1}", "f(n + k", ")\\right)")
-        new_text = MathTex("S(x) = \\lim_{n\\to\\infty}\\left(\\sum_{k=1}^{n-1} (f(k) - f(x + k)) +", "\\sum_{k_1=0}^{x-1}", "f(n + k_", "1", ")\\right)")
+
+        text = MathTex("S(x) = \\lim_{n\\to\\infty}\\left(\\sum_{k=1}^{n-1} (f(k) - f(x + k)) + \\sum_{k=0}^{x-1}", "f(n + k)\\right)")
+        new_text = MathTex("S(x) = \\lim_{n\\to\\infty}\\left(\\sum_{k=1}^{n-1} (f(k) - f(x + k)) + \\sum_{k=0}^{x-1}", "\\Delta^0", "f(n + k)\\right)")
+        self.play(morph_text(text, new_text, [0, 2]))
+
+        self.remove(*text, *new_text)
+        text = MathTex("S(x) = \\lim_{n\\to\\infty}\\left(\\sum_{k=1}^{n-1} (f(k) - f(x + k)) +", "\\sum_{k=0}^{x-1}", "\\Delta^0 f(n + k", ")\\right)")
+        new_text = MathTex("S(x) = \\lim_{n\\to\\infty}\\left(\\sum_{k=1}^{n-1} (f(k) - f(x + k)) +", "\\sum_{k_1=0}^{x-1}", "\\Delta^0 f(n + k_", "1", ")\\right)")
         self.add(text)
         self.play(
             morph_text(text, new_text, [0, None, 2, 4], ignore_1=[1], ignore_2=[1]),

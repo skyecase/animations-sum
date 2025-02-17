@@ -65,6 +65,18 @@ class Transformation(Scene):
             Transform(sum[0], new_text[1])
         )
 
+        self.remove(*text, *new_text, sum)
+        text = MathTex("S(x) = \\lim_{n\\to\\infty}\\left(\\sum_{k=1}^{n-1} (f(k) - f(x + k)) +", "\\sum_{k=0}^{x-1}", "f(n + k", ")\\right)")
+        new_text = MathTex("S(x) = \\lim_{n\\to\\infty}\\left(\\sum_{k=1}^{n-1} (f(k) - f(x + k)) +", "\\sum_{k_1=0}^{x-1}", "f(n + k_", "1", ")\\right)")
+        self.add(text)
+        self.play(
+            morph_text(text, new_text, [0, None, 2, 4], ignore_1=[1], ignore_2=[1]),
+            Transform(text[1][:5], new_text[1][:5]),
+            Transform(text[1][5:], new_text[1][6:]),
+            grow_between(new_text[1][5], text[1][4], text[1][5])
+        )
+
+
         self.wait()
 
 

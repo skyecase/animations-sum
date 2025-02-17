@@ -132,4 +132,4 @@ class ProblemIntroduction(Scene):
         )
 
 
-        self.wait(10)
+        self.wait(30)

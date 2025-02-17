@@ -1,96 +1,71 @@
 from manim import *
 import numpy as np
 import math
-from modules.helpers import morph_text
+from modules.helpers import fade_and_shift_in, fade_and_shift_out, grow_between, highlight, highlight_animation, morph_text
 
 
-class Asdf(Scene):
+class Transformation(Scene):
     def construct(self):
+        text = MathTex("S(x) = \\lim_{n\\to\\infty}\\left(", "\\sum_{k=1}^n", "(f(k) - f(x+k)) + \\sum_{k=1}^x f(n", "+k)\\right)")
+        sub_text = MathTex("n", "\\to", "n - 1").move_to(DOWN * 1.5)
 
-        # text = MathTex("""
-        #                \\sum_{k = 0}^{x - 1}f(n + 1 + k) & = \\left( \\sum_{k_1 = 0}^{x-1} \\Delta^0 f(n + 1) \\right. \\\\
-        #                & + \\sum_{k_1 = 0}^{x-1} \\sum_{k_2 = 0}^{k_1 - 1} \\Delta^1 f(n + 1) \\\\
-        #                & + \\sum_{k_1 = 0}^{x-1} \\sum_{k_2 = 0}^{k_1 - 1} \\sum_{k_3 = 0}^{k_2 - 1} \\Delta^2 f(n + 1) \\\\
-        #                & \\vdots \\\\
-        #                & + \\sum_{k_1 = 0}^{x - 1} \\sum_{k_2 = 0}^{k_1 - 1} \\cdots \\sum_{k_p = 0}^{k_{p-1} - 1} \\Delta^{p - 1} f(n + 1)
-        #                """)\
-        # .scale(0.8)
-
-        # self.play(Write(text))
-        # self.wait()
-
-
-        text = MathTex("S(x) = \\sum_{k = 1}^n (f(k) - f(x+k)) +", "\\sum_{k=0}^{x-1}", "f(n+1 + k", ")")
-        new_text = MathTex("S(x) = \\sum_{k = 1}^n (f(k) - f(x+k)) +", "\\sum_{k_1=0}^{x-1}", "f(n+1 + k", "_1", ")")
+        new_text = MathTex("S(x) = \\lim_{n\\to\\infty}\\left(", "\\sum_{k=1}^{n-1}", "(f(k) - f(x+k)) + \\sum_{k=1}^x f(n", "-1", "+k)\\right)")
 
         self.add(text)
 
         self.play(
-            morph_text(text, new_text, [0, None, 2, 4], ignore_1=[1], ignore_2=[1]),
-            morph_text(text[1], new_text[1], [0, 1, 2, 3, 4, 6, 7])
+            LaggedStart(
+                *[fade_and_shift_in(t, LEFT * 0.5, run_time=0.5) for t in sub_text],
+                lag_ratio=0.25
+            )
         )
 
+        self.play(
+            morph_text(text, new_text, [0, 1, 2, 4], ignore_1=[1], ignore_2=[1]),
+            grow_between(new_text[1][1:3], text[1][0]),
+            Transform(text[1], VGroup(new_text[1][0], *new_text[1][3:]))
+        )
 
-        self.remove(*[letter  for mobj in [text, new_text]  for word in mobj  for letter in word])
+        self.remove(*text, *new_text, *text[1], *new_text[1])
 
-        
-        text = MathTex("S(x) = \\sum_{k = 1}^n (f(k) - f(x+k)) + \\sum_{k_1=0}^{x-1}", "f(n+1 + k_1)")
-        f_copy = text[1].copy()
-
+        text = MathTex("S(x) = \\lim_{n\\to\\infty}\\left(\\sum_{k=1}^{n-1} (f(k) - f(x + k)) +", "\\sum_{k=1}^x f(n", "- 1", "+ k", ")", "\\right)")
         self.add(text)
 
         self.play(
-            text.animate.shift(UP * 2.5),
-            f_copy.animate.move_to(ORIGIN)
+            fade_and_shift_out(sub_text, DOWN)
         )
 
+        sum = MathTex("\\sum_{k=0}^{x-1} f(n + k)").move_to(text[1:5].get_center() + DOWN)
 
-        rule = MathTex("f(", "a", " + ", "b", ") = f(", "a", ") + \\sum_{k=0}^{b-1} \\Delta f(", "a", " + k)").move_to(DOWN * 1.5)
+        self.play(highlight_animation(text[1:5], BLUE))
+
+
+        new_text = MathTex("S(x) = \\lim_{n\\to\\infty}\\left(\\sum_{k=1}^{n-1} (f(k) - f(x + k)) +", "\\sum_{k=1}^x f(n", "+ k", "- 1", ")", "\\right)")
+        highlight(new_text[1:5], BLUE)
 
         self.play(
-            f_copy.animate.shift(UP * 0.5),
-            FadeIn(rule, shift = UP)
+            morph_text(text, new_text, [0, 1, 3, 2, 4, 5], path_arc = PI*0.8)
         )
 
-        self.remove(f_copy)
-        f_copy = MathTex("f(", "n+1", "+", "k_1", ")").move_to(f_copy)
-        self.add(f_copy)
-
-        f_copy.save_state()
+        equals = MathTex("=").rotate(PI/2).move_to(RIGHT * sum.get_center())
 
         self.play(
-            *[rule.animate.set_color(RED).set_stroke(width=2).scale(1.1) for rule in [rule[1], rule[5], rule[7], *f_copy[1]]]
+            text.animate.shift(UP),
+            FadeIn(sum, shift = UP),
+            FadeIn(equals, shift = UP, scale = 0)
         )
 
-        new_rule = MathTex("f(", "n+1", " + ", "b", ") = f(", "n+1", ") + \\sum_{k=0}^{b-1} \\Delta f(", "n+1", " + k)").move_to(DOWN * 1.5)
+        new_text = MathTex("S(x) = \\lim_{n\\to\\infty}\\left(\\sum_{k=1}^{n-1} (f(k) - f(x + k)) +", "\\sum_{k=0}^{x-1} f(n + k)", "\\right)")
 
         self.play(
-            Transform(rule, new_rule),
-            Restore(f_copy)
+            Transform(text[0], new_text[0]),
+            Transform(text[5], new_text[2]),
+            text[1:5].animate.set_color(BLACK).shift(UP).scale(0.5),
+            FadeOut(equals, shift=UP, scale=0),
+            Transform(sum[0], new_text[1])
         )
-
-        self.remove(*rule)
-        rule = MathTex("f(n+1 + ", "b", ") = f(n+1) +", "\\sum_{k=0}^{b-1}", "\\Delta f(n+1 + k)").move_to(DOWN * 1.5)
-        self.add(rule)
-
-        self.play(
-            *[rule.animate.set_color(RED).set_stroke(width=2).scale(1.1) for rule in [rule[1], rule[3][0], f_copy[3]]]
-        )
-
-        new_rule = MathTex("f(n+1 + ", "k_1", ") = f(n+1) +", "\\sum_{k=0}^{k_1-1}", "\\Delta f(n+1 + k)").move_to(DOWN * 1.5)
-
-        self.play(
-            Transform(rule[:3], new_rule[:3]),
-            Transform(rule[3][0], new_rule[3][0:2]),
-            Transform(rule[3][1:], new_rule[3][2:]),
-            Transform(rule[4], new_rule[4]),
-            Restore(f_copy)
-        )
-
 
         self.wait()
-
-
 
 
 class Bsdf(Scene):

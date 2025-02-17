@@ -80,6 +80,40 @@ class Transformation(Scene):
         self.wait()
 
 
+
+class SuperRecursive2(Scene):
+    def construct(self):
+        text = MathTex("f(a + b) =", "f(a) + \\sum_{k=0}^{b-1} \\Delta", "f(a + k)")
+        self.play(Write(text))
+
+        new_text = MathTex("\\Delta^0", "f(a + b) =", "\\Delta^0", "f(a) + \\sum_{k=0}^{b-1} \\Delta^", "1", "f(a + k)")
+        self.play(morph_text(text, new_text, [1, 3, 5]))
+
+        self.remove(*text, *new_text)
+        text = new_text
+        self.add(text)
+
+
+        text_2 = MathTex("\\Delta^1 f(a + b) = \\Delta^1 f(a) + \\sum_{k=0}^{b-1} \\Delta^2 f(a + k)").move_to(DOWN*1.5)
+        self.play(
+            text.animate.shift(UP*1.5),
+            FadeIn(text_2, shift=UP*1.5)
+        )
+
+        self.play(Transform(text_2, MathTex("\\Delta^2 f(a + b) = \\Delta^2 f(a) + \\sum_{k=0}^{b-1} \\Delta^3 f(a + k)").move_to(DOWN*1.5)))
+        self.play(Transform(text_2, MathTex("\\Delta^3 f(a + b) = \\Delta^3 f(a) + \\sum_{k=0}^{b-1} \\Delta^4 f(a + k)").move_to(DOWN*1.5)))
+
+        self.remove(text_2)
+        text_2 = MathTex("\\Delta^3 f(a + b) = \\Delta^3 f(a) + \\sum_{k=0}^{b-1} \\Delta^", "4", "f(a + k)").move_to(DOWN*1.5)
+        self.add(text_2)
+        new_text_2 = MathTex("\\Delta^n f(a + b) = \\Delta^n f(a) + \\sum_{k=0}^{b-1} \\Delta^", "{n+1}", "f(a + k)").move_to(DOWN*1.5)
+
+        self.play(Transform(text_2, new_text_2))
+
+        self.wait()
+
+
+
 class Bsdf(Scene):
     def construct(self):
         text = MathTex("S(x) = \\lim_{n \\to \\infty} \\left( \\sum_{k=0}^n\\right. (f(k) - f(x+k)) &+", "\\left. \\sum_{k_1=0}^{x-1} f(n + 1 + k_1)", "\\right)")

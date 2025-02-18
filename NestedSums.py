@@ -120,115 +120,165 @@ class SuperRecursive2(Scene):
 
 
 
-class Bsdf(Scene):
+
+class BigSolution(Scene):
     def construct(self):
-        text = MathTex("S(x) = \\lim_{n \\to \\infty} \\left( \\sum_{k=0}^n\\right. (f(k) - f(x+k)) &+", "\\left. \\sum_{k_1=0}^{x-1} f(n + 1 + k_1)", "\\right)")
-        text.scale(0.8)
+        lim_text = MathTex("\\lim_{x \\to \\infty} \\Delta^3 f(x) = 0").scale(0.8).move_to(UP * 3)
+        text = MathTex("S(x) = \\lim_{n\\to\\infty}\\left(\\sum_{k=1}^{n-1} (f(k) - f(x + k)) +", "\\sum_{k_1=0}^{x-1}", "\\Delta^0 f(n + k_1)", "\\right)")
 
-        self.add(text)
+        self.add(text, lim_text)
+
+        self.play(highlight_animation(text[2], BLUE))
 
 
-        focus_text = text[1].copy()
-        self.add(focus_text)
-        text[1].set_color(DARK_GRAY)
+        low_text = MathTex("\\Delta^0 f(", "a", "+ b) = \\Delta^0 f(", "a", ") + \\sum_{k_2=0}^{b-1} \\Delta^1 f(", "a", "+ k_2)").move_to(DOWN * 2)
+
         self.play(
-            focus_text.animate.move_to(DOWN),
-            text[0].animate.shift(UP * 2),
-            text[1].animate.shift(UP * 2),
-            text[2].animate.shift(UP * 2),
+            text.animate.shift(UP),
+            FadeIn(low_text, shift=UP)
         )
 
+        self.play(highlight_animation(VGroup(low_text[1], low_text[3], low_text[5]), YELLOW), run_time=0.5)
 
-        new_focus_text = MathTex("\\sum_{k_1=0}^{x-1} f(n + 1 + k_1)", "= \\sum_{k_1=0}^{x-1} \\left(f(n + 1) + \\sum_{k_2=0}^{k_1-1}\\Delta f(n + 1 + k_2)\\right)")
-        new_focus_text.move_to(DOWN).scale(0.8)
+        new_low_text = MathTex("\\Delta^0 f(", "n", "+ b) = \\Delta^0 f(", "n", ") + \\sum_{k_2=0}^{b-1} \\Delta^1 f(", "n", "+ k_2)").move_to(DOWN * 2)
+        self.play(Transform(low_text, new_low_text))
 
-        self.play(morph_text(VGroup(focus_text), new_focus_text, [0]))
+        self.remove(*low_text, *new_low_text)
+        low_text = MathTex("\\Delta^0 f(n +", "b", ") = \\Delta^0 f(n) +", "\\sum_{k_2=0}^{b-1}", "\\Delta^1 f(n + k_2)").move_to(DOWN * 2)
+        self.add(low_text)
+        self.play(highlight_animation(VGroup(low_text[1], low_text[3][0]), YELLOW), run_time=0.5)
 
-        self.remove(*focus_text, *new_focus_text)
-        focus_text = MathTex("\\sum_{k_1=0}^{x-1} f(n + 1 + k_1) = \\sum_{k_1=0}^{x-1}", "\\left(", "f(n + 1) +", "\\sum_{k_2=0}^{k_1-1}\\Delta f(n + 1 + k_2)", "\\right)")
-        new_focus_text = MathTex("\\sum_{k_1=0}^{x-1} f(n + 1 + k_1) = \\sum_{k_1=0}^{x-1}", "f(n + 1) +", "\\sum_{k_1=0}^{x-1}", "\\sum_{k_2=0}^{k_1-1}\\Delta f(n + 1 + k_2)")
-        focus_text.move_to(DOWN).scale(0.8)
-        new_focus_text.move_to(DOWN).scale(0.8)
-        self.play(morph_text(focus_text, new_focus_text, [0, None, 1, 3]))
+        new_low_text = MathTex("\\Delta^0 f(n +", "k_1", ") = \\Delta^0 f(n) +", "\\sum_{k_2=0}^{k_1-1}", "\\Delta^1 f(n + k_2)").move_to(DOWN * 2)
+        self.play(
+            Transform(low_text[0:3], new_low_text[0:3]),
+            Transform(low_text[4:], new_low_text[4:]),
+            Transform(low_text[3][1:], new_low_text[3][2:]),
+            Transform(low_text[3][0], new_low_text[3][0:2]),
+        )
 
-        self.remove(*focus_text, *new_focus_text)
-        focus_text = MathTex("\\sum_{k_1=0}^{x-1} f(n + 1 + k_1) =", "\\sum_{k_1=0}^{x-1} f(n + 1)", "+ \\sum_{k_1=0}^{x-1} \\sum_{k_2=0}^{k_1-1}\\Delta f(n + 1 + k_2)")
-        focus_text.move_to(DOWN).scale(0.8)
+        self.remove(*new_low_text, *low_text, *new_low_text[3], *low_text[3])
+        low_text = MathTex("\\Delta^0 f(n + k_1)", "=", "\\Delta^0 f(n) + \\sum_{k_2=0}^{k_1-1} \\Delta^1 f(n + k_2)").move_to(DOWN * 2)
+        new_low_text = MathTex("\\sum_{k_1=0}^{x-1}", "\\Delta^0 f(n + k_1)", "=", "\\sum_{k_1=0}^{x-1} \\left(", "\\Delta^0 f(n) + \\sum_{k_2=0}^{k_1-1} \\Delta^1 f(n + k_2)", "\\right)").move_to(DOWN * 2)
+        highlight(new_low_text[0:2], BLUE)
+        new_low_text[0].save_state()
+        new_low_text[0].set_stroke(width=0).set_color(BLACK).scale(0).move_to(low_text[0].get_left())
+        self.play(
+            morph_text(low_text, new_low_text, [1, 2, 4], ignore_2=[0]),
+            new_low_text[0].animate.restore(),
+            highlight_animation(text[1], BLUE)
+        )
+
+        self.remove(*low_text, *new_low_text)
+        low_text = MathTex("\\sum_{k_1=0}^{x-1} \\Delta^0 f(n + k_1)", "=", "\\sum_{k_1=0}^{x-1}", "\\left(", "\\Delta^0 f(n) +", "\\sum_{k_2=0}^{k_1-1} \\Delta^1 f(n + k_2)", "\\right)").move_to(DOWN * 2)
+        self.add(low_text)
+        new_low_text = MathTex("\\sum_{k_1=0}^{x-1} \\Delta^0 f(n + k_1)", "=", "\\sum_{k_1=0}^{x-1}", "\\Delta^0 f(n) +", "\\sum_{k_1=0}^{x-1}", "\\sum_{k_2=0}^{k_1-1} \\Delta^1 f(n + k_2)").move_to(DOWN * 2)
+        highlight(low_text[0], BLUE)
+        highlight(new_low_text[0], BLUE)
+        sum_copy = low_text[2].copy()
+        self.play(
+            morph_text(low_text, new_low_text, [0, 1, 2, None, 3, 5], ignore_2=[4]),
+            Transform(sum_copy, new_low_text[4], path_arc=PI*3/4)
+        )
+
+        self.remove(*low_text, *new_low_text, sum_copy)
+        low_text = MathTex("\\sum_{k_1=0}^{x-1} \\Delta^0 f(n + k_1)", "=", "\\sum_{k_1=0}^{x-1} \\Delta^0 f(n)", "+ \\sum_{k_1=0}^{x-1}\\sum_{k_2=0}^{k_1-1} \\Delta^1 f(n + k_2)").move_to(DOWN * 2)
+        highlight(low_text[0], BLUE)
         new_text = MathTex(
-            "S(x) = \\lim_{n \\to \\infty} \\left( \\sum_{k=0}^n\\right. (f(k) - f(x+k)) &+", "\\sum_{k_1=0}^{x-1} f(n + 1) \\\\",
-            "&+ \\left. \\sum_{k_1=0}^{x-1} \\sum_{k_2=0}^{k_1-1}\\Delta f(n + 1 + k_2)", "\\right)"
-        ).move_to(UP).scale(0.8)
-        self.add(focus_text)
+            "S(x) = \\lim_{n\\to\\infty}\\left(\\sum_{k=1}^{n-1}\\right. (f(k) - f(x + k)) &+", "\\sum_{k_1=0}^{x-1} \\Delta^0 f(n) \\\\",
+            "&+ \\left. \\sum_{k_1=0}^{x-1} \\sum_{k_2=0}^{k_1-1}\\Delta^1 f(n + k_2)", "\\right)"
+        ).scale(0.9)
 
         self.play(
             Transform(text[0], new_text[0]),
-            Transform(focus_text[1], new_text[1]),
-            Transform(focus_text[2], new_text[2]),
-            Transform(text[2], new_text[3]),
-            FadeOut(text[1], shift = UP),
-            FadeOut(focus_text[0], shift = LEFT),
+            text[1:3].animate(remover=True).scale(0).move_to(new_text[1].get_top()).set_stroke(width=0).set_color(BLACK),
+            Transform(text[3], new_text[3]),
+            Transform(low_text[2], new_text[1]),
+            Transform(low_text[3], new_text[2]),
+            low_text[0:2].animate(remover=True).shift(DOWN).set_stroke(width=0).set_color(BLACK),
         )
 
 
-        self.remove(*text, *new_text, *focus_text)
 
+        # =====================================
+        # SECOND ITERATION
+        # =====================================
+
+        self.remove(*text, *new_text, *low_text)
         text = MathTex(
-            "S(x) = \\lim_{n \\to \\infty} \\left( \\sum_{k=0}^n\\right. (f(k) - f(x+k)) &+ \\sum_{k_1=0}^{x-1} f(n + 1) \\\\"
-            "&+", "\\left. \\sum_{k_1=0}^{x-1} \\sum_{k_2=0}^{k_1-1}\\Delta f(n + 1 + k_2)", "\\right)"
-        ).move_to(UP).scale(0.8)
-        focus_text = text[1].copy()
-        text[1].set_color(DARK_GRAY)
-
-        self.play(
-            text.animate.move_to(UP * 1.5),
-            focus_text.animate.move_to(DOWN * 1.5)
-        )
-
-        new_focus_text = MathTex("\\sum_{k_1=0}^{x-1} \\sum_{k_2=0}^{k_1-1}\\Delta f(n + 1 + k_2)", "= \\sum_{k_1=0}^{x-1} \\sum_{k_2=0}^{k_1-1} \\left(\\Delta f(n + 1) + \\sum_{k_3 = 0}^{k_2 - 1}\\Delta^2f(n + 1 + k_3)\\right)")
-        new_focus_text.move_to(DOWN * 1.5).scale(0.8)
-        self.play(
-            focus_text.animate.move_to(new_focus_text[0]),
-            FadeIn(new_focus_text[1], shift = LEFT * 5)
-        )
-
-        self.remove(*focus_text, *new_focus_text)
-        focus_text = MathTex("\\sum_{k_1=0}^{x-1} \\sum_{k_2=0}^{k_1-1}\\Delta f(n + 1 + k_2) = \\sum_{k_1=0}^{x-1} \\sum_{k_2=0}^{k_1-1}", "\\left(", "\\Delta f(n + 1) +", "\\sum_{k_3 = 0}^{k_2 - 1}\\Delta^2f(n + 1 + k_3)", "\\right)")
-        focus_text.move_to(DOWN * 1.5).scale(0.8)
-        new_focus_text = MathTex("\\sum_{k_1=0}^{x-1} \\sum_{k_2=0}^{k_1-1}\\Delta f(n + 1 + k_2) = \\sum_{k_1=0}^{x-1} \\sum_{k_2=0}^{k_1-1}", "\\Delta f(n + 1) +", "\\sum_{k_1=0}^{x-1} \\sum_{k_2=0}^{k_1-1}", "\\sum_{k_3 = 0}^{k_2 - 1}\\Delta^2f(n + 1 + k_3)")
-        new_focus_text.move_to(DOWN * 1.5).scale(0.75)
-        self.play(morph_text(focus_text, new_focus_text, [0, None, 1, 3]))
-
-        self.remove(*focus_text, *new_focus_text)
-        focus_text = MathTex("\\sum_{k_1=0}^{x-1} \\sum_{k_2=0}^{k_1-1}\\Delta f(n + 1 + k_2) =", "\\sum_{k_1=0}^{x-1} \\sum_{k_2=0}^{k_1-1} \\Delta f(n + 1)", "+ \\sum_{k_1=0}^{x-1} \\sum_{k_2=0}^{k_1-1} \\sum_{k_3 = 0}^{k_2 - 1}\\Delta^2f(n + 1 + k_3)")
-        focus_text.move_to(DOWN * 1.5).scale(0.75)
-        new_text = MathTex(
-            "S(x) = \\lim_{n \\to \\infty} \\left( \\sum_{k=0}^n\\right. (f(k) - f(x+k)) &+ \\sum_{k_1=0}^{x-1} f(n + 1) \\\\"
-            "&+", "\\sum_{k_1=0}^{x-1} \\sum_{k_2=0}^{k_1-1} \\Delta f(n + 1) \\\\",
-            "&+ \\left. \\sum_{k_1=0}^{x-1} \\sum_{k_2=0}^{k_1-1} \\sum_{k_3=0}^{k_2-1} \\Delta^2 f(n + 1 + k_3)", "\\right)"
-        ).scale(0.8)
-        self.add(focus_text)
-
-        self.play(
-            Transform(text[0], new_text[0]),
-            Transform(focus_text[1], new_text[1]),
-            Transform(focus_text[2], new_text[2]),
-            Transform(text[2], new_text[3]),
-            FadeOut(text[1], shift = new_text[1].get_top() - text[1].get_center(), scale = 0),
-            FadeOut(focus_text[0], shift = LEFT),
-        )
-
-
-
-
-        self.remove(*text, *new_text, *focus_text)
-
-        text = MathTex(
-            "S(x) = \\lim_{n \\to \\infty} \\left( \\sum_{k=0}^n\\right. (f(k) - f(x+k)) &+ \\sum_{k_1=0}^{x-1} f(n + 1) \\\\"
-            "&+ \\sum_{k_1=0}^{x-1} \\sum_{k_2=0}^{k_1-1} \\Delta f(n + 1) \\\\"
-            "&+", "\\left. \\sum_{k_1=0}^{x-1} \\sum_{k_2=0}^{k_1-1} \\sum_{k_3=0}^{k_2-1} \\Delta^2 f(n + 1 + k_3)", "\\right)"
-        ).scale(0.8)
+            "S(x) = \\lim_{n\\to\\infty}\\left(\\sum_{k=1}^{n-1}\\right. (f(k) - f(x + k)) &+ \\sum_{k_1=0}^{x-1} \\Delta^0 f(n) \\\\",
+            "&+ \\left.", "\\sum_{k_1=0}^{x-1}\\sum_{k_2=0}^{k_1-1}", "\\Delta^1 f(n + k_2)", "\\right)"
+        ).scale(0.9)
         self.add(text)
 
+        self.play(highlight_animation(text[3], BLUE))
 
 
-        self.wait()
+        low_text = MathTex("\\Delta^1 f(", "a", "+ b) = \\Delta^1 f(", "a", ") + \\sum_{k_3=0}^{b-1} \\Delta^2 f(", "a", "+ k_3)").scale(0.9).move_to(DOWN * 2)
+
+        self.play(
+            text.animate.move_to(2.5*UP, UP),
+            lim_text.animate.move_to(3.25*UP),
+            FadeIn(low_text, shift=UP)
+        )
+
+        self.play(highlight_animation(VGroup(low_text[1], low_text[3], low_text[5]), YELLOW), run_time=0.5)
+
+        new_low_text = MathTex("\\Delta^1 f(", "n", "+ b) = \\Delta^1 f(", "n", ") + \\sum_{k_3=0}^{b-1} \\Delta^2 f(", "n", "+ k_3)").scale(0.9).move_to(DOWN * 2)
+        self.play(Transform(low_text, new_low_text))
+
+        self.remove(*low_text, *new_low_text)
+        low_text = MathTex("\\Delta^1 f(n +", "b", ") = \\Delta^1 f(n) +", "\\sum_{k_3=0}^{b-1}", "\\Delta^2 f(n + k_3)").scale(0.9).move_to(DOWN * 2)
+        self.add(low_text)
+        self.play(highlight_animation(VGroup(low_text[1], low_text[3][0]), YELLOW), run_time=0.5)
+
+        new_low_text = MathTex("\\Delta^1 f(n +", "k_2", ") = \\Delta^1 f(n) +", "\\sum_{k_3=0}^{k_2-1}", "\\Delta^2 f(n + k_3)").scale(0.9).move_to(DOWN * 2)
+        self.play(
+            Transform(low_text[0:3], new_low_text[0:3]),
+            Transform(low_text[4:], new_low_text[4:]),
+            Transform(low_text[3][1:], new_low_text[3][2:]),
+            Transform(low_text[3][0], new_low_text[3][0:2]),
+        )
+
+        self.play(highlight_animation(text[2], BLUE))
+
+        self.remove(*low_text, *new_low_text, *low_text[3], *new_low_text[3])
+        low_text = MathTex("\\Delta^1 f(n + k_2)", "=", "\\Delta^1 f(n) + \\sum_{k_3=0}^{k_2-1}\\Delta^2 f(n + k_3)").scale(0.9).move_to(DOWN * 2)
+        new_low_text = MathTex("\\sum_{k_1=0}^{x-1}\\sum_{k_2=0}^{k_1-1}", "\\Delta^1 f(n + k_2)", "=", "\\sum_{k_1=0}^{x-1}\\sum_{k_2=0}^{k_1-1} \\left(", "\\Delta^1 f(n) + \\sum_{k_3=0}^{k_2-1}\\Delta^2 f(n + k_3)", "\\right)").scale(0.85).move_to(DOWN * 2)
+        highlight(new_low_text[0:2], BLUE)
+        new_low_text[0].save_state()
+        new_low_text[0].set_stroke(width=0).set_color(BLACK).scale(0).move_to(low_text[0].get_left())
+        self.play(
+            morph_text(low_text, new_low_text, [1, 2, 4], ignore_2=[0]),
+            new_low_text[0].animate.restore()
+        )
+
+        self.remove(*low_text, *new_low_text)
+        low_text = MathTex("\\sum_{k_1=0}^{x-1}\\sum_{k_2=0}^{k_1-1} \\Delta^1 f(n + k_2)", "=", "\\sum_{k_1=0}^{x-1}\\sum_{k_2=0}^{k_1-1}", "\\left(", "\\Delta^1 f(n) +", "\\sum_{k_3=0}^{k_2-1} \\Delta^2 f(n + k_3)", "\\right)").scale(0.85).move_to(DOWN * 2)
+        self.add(low_text)
+        new_low_text = MathTex("\\sum_{k_1=0}^{x-1}\\sum_{k_2=0}^{k_1-1} \\Delta^1 f(n + k_2)", "=", "\\sum_{k_1=0}^{x-1}\\sum_{k_2=0}^{k_1-1}", "\\Delta^1 f(n) +", "\\sum_{k_1=0}^{x-1}\\sum_{k_2=0}^{k_1-1}", "\\sum_{k_3=0}^{k_2-1} \\Delta^2 f(n + k_3)").scale(0.82).move_to(DOWN * 2)
+        highlight(low_text[0], BLUE)
+        highlight(new_low_text[0], BLUE)
+        sum_copy = low_text[2].copy()
+        self.play(
+            morph_text(low_text, new_low_text, [0, 1, 2, None, 3, 5], ignore_2=[4]),
+            Transform(sum_copy, new_low_text[4], path_arc=PI*3/4)
+        )
+
+        self.remove(*low_text, *new_low_text, *sum_copy)
+        new_text = MathTex(
+            "S(x) = \\lim_{n\\to\\infty}\\left(\\sum_{k=1}^{n-1}\\right. (f(k) - f(x + k)) &+ \\sum_{k_1=0}^{x-1} \\Delta^0 f(n) \\\\",
+            "&+", "\\sum_{k_1=0}^{x-1}\\sum_{k_2=0}^{k_1-1} \\Delta^1 f(n) \\\\",
+            "&+ \\left. \\sum_{k_1=0}^{x-1}\\sum_{k_2=0}^{k_1-1}\\sum_{k_3=0}^{k_2-1} \\Delta^2 f(n + k_3)", "\\right)"
+        ).scale(0.85)
+        low_text = MathTex("\\sum_{k_1=0}^{x-1}\\sum_{k_2=0}^{k_1-1} \\Delta^1 f(n + k_2)", "=", "\\sum_{k_1=0}^{x-1}\\sum_{k_2=0}^{k_1-1} \\Delta^1 f(n)", "+ \\sum_{k_1=0}^{x-1}\\sum_{k_2=0}^{k_1-1}\\sum_{k_3=0}^{k_2-1} \\Delta^2 f(n + k_3)").scale(0.82).move_to(DOWN * 2)
+        highlight(low_text[0], BLUE)
+        self.add(low_text)
+        self.play(
+            Transform(text[0], new_text[0]),
+            Transform(text[1], new_text[1]),
+            text[2:4].animate(remover=True).scale(0).move_to(new_text[2].get_top()).set_stroke(width=0).set_color(BLACK),
+            Transform(low_text[2], new_text[2]),
+            Transform(low_text[3], new_text[3]),
+            low_text[0:2].animate(remover=True).shift(DOWN).set_stroke(width=0).set_color(BLACK),
+            Transform(text[-1], new_text[-1])
+        )

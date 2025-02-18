@@ -183,7 +183,7 @@ class BigSolution(Scene):
         highlight(low_text[0], BLUE)
         new_text = MathTex(
             "S(x) = \\lim_{n\\to\\infty}\\left(\\sum_{k=1}^{n-1}\\right. (f(k) - f(x + k)) &+", "\\sum_{k_1=0}^{x-1} \\Delta^0 f(n) \\\\",
-            "&+ \\left. \\sum_{k_1=0}^{x-1} \\sum_{k_2=0}^{k_1-1}\\Delta^1 f(n + k_2)", "\\right)"
+            "&+ \\sum_{k_1=0}^{x-1} \\sum_{k_2=0}^{k_1-1}\\Delta^1 f(n + k_2)", "\\left.\\vphantom{\\sum_{k_1=0}^{x-1}}\\right)"
         ).scale(0.9)
 
         self.play(
@@ -204,7 +204,7 @@ class BigSolution(Scene):
         self.remove(*text, *new_text, *low_text)
         text = MathTex(
             "S(x) = \\lim_{n\\to\\infty}\\left(\\sum_{k=1}^{n-1}\\right. (f(k) - f(x + k)) &+ \\sum_{k_1=0}^{x-1} \\Delta^0 f(n) \\\\",
-            "&+ \\left.", "\\sum_{k_1=0}^{x-1}\\sum_{k_2=0}^{k_1-1}", "\\Delta^1 f(n + k_2)", "\\right)"
+            "&+", "\\sum_{k_1=0}^{x-1}\\sum_{k_2=0}^{k_1-1}", "\\Delta^1 f(n + k_2)", "\\left.\\vphantom{\\sum_{k_1=0}^{x-1}}\\right)"
         ).scale(0.9)
         self.add(text)
 
@@ -266,7 +266,7 @@ class BigSolution(Scene):
         new_text = MathTex(
             "S(x) = \\lim_{n\\to\\infty}\\left(\\sum_{k=1}^{n-1}\\right. (f(k) - f(x + k)) &+ \\sum_{k_1=0}^{x-1} \\Delta^0 f(n) \\\\",
             "&+", "\\sum_{k_1=0}^{x-1}\\sum_{k_2=0}^{k_1-1} \\Delta^1 f(n) \\\\",
-            "&+ \\left. \\sum_{k_1=0}^{x-1}\\sum_{k_2=0}^{k_1-1}\\sum_{k_3=0}^{k_2-1} \\Delta^2 f(n + k_3)", "\\right)"
+            "&+ \\sum_{k_1=0}^{x-1}\\sum_{k_2=0}^{k_1-1}\\sum_{k_3=0}^{k_2-1} \\Delta^2 f(n + k_3)", "\\left.\\vphantom{\\sum_{k_1=0}^{x-1}}\\right)"
         ).scale(0.85)
         low_text = MathTex("\\sum_{k_1=0}^{x-1}\\sum_{k_2=0}^{k_1-1} \\Delta^1 f(n + k_2)", "=", "\\sum_{k_1=0}^{x-1}\\sum_{k_2=0}^{k_1-1} \\Delta^1 f(n)", "+ \\sum_{k_1=0}^{x-1}\\sum_{k_2=0}^{k_1-1}\\sum_{k_3=0}^{k_2-1} \\Delta^2 f(n + k_3)").scale(0.82).move_to(DOWN * 2)
         highlight(low_text[0], BLUE)
@@ -292,7 +292,7 @@ class BigSolution(Scene):
         text = MathTex(
             "S(x) = \\lim_{n\\to\\infty}\\left(\\sum_{k=1}^{n-1}\\right. (f(k) - f(x + k)) &+ \\sum_{k_1=0}^{x-1} \\Delta^0 f(n) \\\\"
             "&+ \\sum_{k_1=0}^{x-1}\\sum_{k_2=0}^{k_1-1} \\Delta^1 f(n) \\\\"
-            "&+ \\left.", "\\sum_{k_1=0}^{x-1}\\sum_{k_2=0}^{k_1-1}\\sum_{k_3=0}^{k_2-1}", "\\Delta^2 f(n + k_3)", "\\right)"
+            "&+", "\\sum_{k_1=0}^{x-1}\\sum_{k_2=0}^{k_1-1}\\sum_{k_3=0}^{k_2-1}", "\\Delta^2 f(n + k_3)", "\\left.\\vphantom{\\sum_{k_1=0}^{x-1}}\\right)"
         ).scale(0.85)
         self.add(text)
 
@@ -337,7 +337,7 @@ class BigSolution(Scene):
             "S(x) = \\lim_{n\\to\\infty}\\left(\\sum_{k=1}^{n-1}\\right. (f(k) - f(x + k)) &+ \\sum_{k_1=0}^{x-1} \\Delta^0 f(n) \\\\"
             "&+ \\sum_{k_1=0}^{x-1}\\sum_{k_2=0}^{k_1-1} \\Delta^1 f(n) \\\\"
             "&+", "\\sum_{k_1=0}^{x-1}\\sum_{k_2=0}^{k_1-1}\\sum_{k_3=0}^{k_2-1} \\Delta^2 f(n) \\\\",
-            "&+ \\left. \\sum_{k_1=0}^{x-1}\\sum_{k_2=0}^{k_1-1}\\sum_{k_3=0}^{k_2-1}\\sum_{k_4=0}^{k_3-1} \\Delta^3 f(n + k_4)", "\\right)"
+            "&+ \\sum_{k_1=0}^{x-1}\\sum_{k_2=0}^{k_1-1}\\sum_{k_3=0}^{k_2-1}\\sum_{k_4=0}^{k_3-1} \\Delta^3 f(n + k_4)", "\\left.\\vphantom{\\sum_{k_1=0}^{x-1}}\\right)"
         ).scale(0.8)
         low_text = MathTex("\\sum_{k_1=0}^{x-1}\\sum_{k_2=0}^{k_1-1}\\sum_{k_3=0}^{k_2-1} \\Delta^2 f(n + k_3)", "=", "\\sum_{k_1=0}^{x-1}\\sum_{k_2=0}^{k_1-1}\\sum_{k_3=0}^{k_2-1} \\Delta^2 f(n)", "+ \\sum_{k_1=0}^{x-1}\\sum_{k_2=0}^{k_1-1}\\sum_{k_3=0}^{k_2-1}\\sum_{k_4=0}^{k_3-1} \\Delta^3 f(n + k_4)").scale(0.7).move_to(DOWN * 2.5)
         highlight(low_text[0], BLUE)
@@ -363,7 +363,7 @@ class BigSolution(Scene):
             "S(x) = \\lim_{n\\to\\infty}\\left(\\sum_{k=1}^{n-1}\\right. (f(k) - f(x + k)) &+ \\sum_{k_1=0}^{x-1} \\Delta^0 f(n) \\\\"
             "&+ \\sum_{k_1=0}^{x-1}\\sum_{k_2=0}^{k_1-1} \\Delta^1 f(n) \\\\"
             "&+ \\sum_{k_1=0}^{x-1}\\sum_{k_2=0}^{k_1-1}\\sum_{k_3=0}^{k_2-1} \\Delta^2 f(n) \\\\",
-            "&+ \\left.", "\\sum_{k_1=0}^{x-1}\\sum_{k_2=0}^{k_1-1}\\sum_{k_3=0}^{k_2-1}\\sum_{k_4=0}^{k_3-1}", "\\Delta^3 f(n + k_4)", "\\right)"
+            "&+", "\\sum_{k_1=0}^{x-1}\\sum_{k_2=0}^{k_1-1}\\sum_{k_3=0}^{k_2-1}\\sum_{k_4=0}^{k_3-1}", "\\Delta^3 f(n + k_4)", "\\left.\\vphantom{\\sum_{k_1=0}^{x-1}}\\right)"
         ).scale(0.8)
         self.add(text)
 
@@ -393,7 +393,7 @@ class BigSolution(Scene):
         new_text = MathTex(
             "S(x) = \\lim_{n\\to\\infty}\\left(\\sum_{k=1}^{n-1}\\right. (f(k) - f(x + k)) &+ \\sum_{k_1=0}^{x-1} \\Delta^0 f(n) \\\\"
             "&+ \\sum_{k_1=0}^{x-1}\\sum_{k_2=0}^{k_1-1} \\Delta^1 f(n) \\\\"
-            "&+ \\left. \\sum_{k_1=0}^{x-1}\\sum_{k_2=0}^{k_1-1}\\sum_{k_3=0}^{k_2-1} \\Delta^2 f(n)", "\\right)"
+            "&+ \\sum_{k_1=0}^{x-1}\\sum_{k_2=0}^{k_1-1}\\sum_{k_3=0}^{k_2-1} \\Delta^2 f(n)", "\\left.\\vphantom{\\sum_{k_1=0}^{x-1}}\\right)"
         ).scale(0.9)
 
         approach_0_group = VGroup(text[1:4], brace, brace_text)

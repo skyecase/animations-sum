@@ -319,24 +319,24 @@ def get_all_mobjects(mobject: manim.VMobject) -> list[manim.VMobject]:
     return mobjects
 
 
-def highlight(mobject: manim.VMobject, color=None):
+def highlight(mobject: manim.VMobject, color=None, scale=1.1):
     mobjects = get_all_mobjects(mobject)
 
     for mobj in mobjects:
-        mobj.scale(1.1).set_stroke(width=1.5)
+        mobj.scale(scale).set_stroke(width=1.5)
         if color: mobj.set_color(color)
     
     return mobject
 
 
-def highlight_animation(mobject: manim.VMobject, color=None, **kwargs):
+def highlight_animation(mobject: manim.VMobject, color=None, scale=1.1, **kwargs):
     mobjects = get_all_mobjects(mobject)
 
     for mobj in mobjects:
         if mobj.stroke_width == None:
             mobj.set_stroke(width=0)
 
-    return mobject.animate(**kwargs).become(highlight(mobject.copy(), color))
+    return mobject.animate(**kwargs).become(highlight(mobject.copy(), color, scale))
 
 
 

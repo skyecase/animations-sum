@@ -156,14 +156,17 @@ class BigSolution(Scene):
 
         self.remove(*new_low_text, *low_text, *new_low_text[3], *low_text[3])
         low_text = MathTex("\\Delta^0 f(n + k_1)", "=", "\\Delta^0 f(n) + \\sum_{k_2=0}^{k_1-1} \\Delta^1 f(n + k_2)").move_to(DOWN * 2)
+        self.add(low_text)
+        self.play(highlight_animation(low_text[0], BLUE))
+        self.play(highlight_animation(text[1], BLUE))
+
         new_low_text = MathTex("\\sum_{k_1=0}^{x-1}", "\\Delta^0 f(n + k_1)", "=", "\\sum_{k_1=0}^{x-1} \\left(", "\\Delta^0 f(n) + \\sum_{k_2=0}^{k_1-1} \\Delta^1 f(n + k_2)", "\\right)").move_to(DOWN * 2)
         highlight(new_low_text[0:2], BLUE)
         new_low_text[0].save_state()
         new_low_text[0].set_stroke(width=0).set_color(BLACK).scale(0).move_to(low_text[0].get_left())
         self.play(
             morph_text(low_text, new_low_text, [1, 2, 4], ignore_2=[0]),
-            new_low_text[0].animate.restore(),
-            highlight_animation(text[1], BLUE)
+            new_low_text[0].animate.restore()
         )
 
         self.remove(*low_text, *new_low_text)
@@ -225,22 +228,24 @@ class BigSolution(Scene):
         self.play(Transform(low_text, new_low_text))
 
         self.remove(*low_text, *new_low_text)
-        low_text = MathTex("\\Delta^1 f(n +", "b", ") = \\Delta^1 f(n) +", "\\sum_{k_3=0}^{b-1}", "\\Delta^2 f(n + k_3)").scale(0.9).move_to(DOWN * 2)
+        low_text = MathTex("\\Delta^1 f(n +", "b", ")", "= \\Delta^1 f(n) +", "\\sum_{k_3=0}^{b-1}", "\\Delta^2 f(n + k_3)").scale(0.9).move_to(DOWN * 2)
         self.add(low_text)
-        self.play(highlight_animation(VGroup(low_text[1], low_text[3][0]), YELLOW), run_time=0.5)
+        self.play(highlight_animation(VGroup(low_text[1], low_text[4][0]), YELLOW), run_time=0.5)
 
-        new_low_text = MathTex("\\Delta^1 f(n +", "k_2", ") = \\Delta^1 f(n) +", "\\sum_{k_3=0}^{k_2-1}", "\\Delta^2 f(n + k_3)").scale(0.9).move_to(DOWN * 2)
+        new_low_text = MathTex("\\Delta^1 f(n +", "k_2", ")", "= \\Delta^1 f(n) +", "\\sum_{k_3=0}^{k_2-1}", "\\Delta^2 f(n + k_3)").scale(0.9).move_to(DOWN * 2)
+        highlight(new_low_text[0:3], BLUE)
         self.play(
-            Transform(low_text[0:3], new_low_text[0:3]),
-            Transform(low_text[4:], new_low_text[4:]),
-            Transform(low_text[3][1:], new_low_text[3][2:]),
-            Transform(low_text[3][0], new_low_text[3][0:2]),
+            Transform(low_text[0:4], new_low_text[0:4]),
+            Transform(low_text[5:], new_low_text[5:]),
+            Transform(low_text[4][1:], new_low_text[4][2:]),
+            Transform(low_text[4][0], new_low_text[4][0:2]),
         )
 
         self.play(highlight_animation(text[2], BLUE))
 
-        self.remove(*low_text, *new_low_text, *low_text[3], *new_low_text[3])
+        self.remove(*low_text, *new_low_text, *low_text[4], *new_low_text[4])
         low_text = MathTex("\\Delta^1 f(n + k_2)", "=", "\\Delta^1 f(n) + \\sum_{k_3=0}^{k_2-1}\\Delta^2 f(n + k_3)").scale(0.9).move_to(DOWN * 2)
+        highlight(low_text[0], BLUE)
         new_low_text = MathTex("\\sum_{k_1=0}^{x-1}\\sum_{k_2=0}^{k_1-1}", "\\Delta^1 f(n + k_2)", "=", "\\sum_{k_1=0}^{x-1}\\sum_{k_2=0}^{k_1-1} \\left(", "\\Delta^1 f(n) + \\sum_{k_3=0}^{k_2-1}\\Delta^2 f(n + k_3)", "\\right)").scale(0.85).move_to(DOWN * 2)
         highlight(new_low_text[0:2], BLUE)
         new_low_text[0].save_state()
@@ -404,3 +409,5 @@ class BigSolution(Scene):
             Transform(text[-1], new_text[-1]),
             lim_text.animate.set_color(WHITE).set_stroke(width=0)
         )
+
+        self.wait()

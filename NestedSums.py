@@ -1,5 +1,6 @@
 from manim import *
 from modules.helpers import fade_and_shift_in, fade_and_shift_out, grow_between, highlight, highlight_animation, morph_text
+from modules.interpolation import cubic_in_out, cubic_in
 
 
 class Transformation(Scene):
@@ -399,7 +400,7 @@ class BigSolution(Scene):
             "S(x) = \\lim_{n\\to\\infty}\\left(\\sum_{k=1}^{n-1}\\right. (f(k) - f(x + k)) &+ \\sum_{k_1=0}^{x-1} \\Delta^0 f(n) \\\\"
             "&+ \\sum_{k_1=0}^{x-1}\\sum_{k_2=0}^{k_1-1} \\Delta^1 f(n) \\\\"
             "&+ \\sum_{k_1=0}^{x-1}\\sum_{k_2=0}^{k_1-1}\\sum_{k_3=0}^{k_2-1} \\Delta^2 f(n)", "\\left.\\vphantom{\\sum_{k_1=0}^{x-1}}\\right)"
-        ).scale(0.9)
+        ).scale(0.95).move_to(DOWN * 0.25)
 
         approach_0_group = VGroup(text[1:4], brace, brace_text)
 
@@ -408,6 +409,196 @@ class BigSolution(Scene):
             approach_0_group.animate(remover=True).scale(0).set_color(BLACK).set_stroke(width=0).move_to(UP * new_text.get_bottom() + DOWN*0.1 + RIGHT * approach_0_group.get_center()),
             Transform(text[-1], new_text[-1]),
             lim_text.animate.set_color(WHITE).set_stroke(width=0)
+        )
+
+        self.remove(*text, *new_text)
+
+        text = MathTex(
+            "S(x) = \\lim_{n\\to\\infty}\\left(\\sum_{k=1}^{n-1}\\right. (f(k) - f(x + k)) &+", "\\sum_{k_1=0}^{x-1}", "\\Delta^0 f(n) \\\\"
+            "&+", "\\sum_{k_1=0}^{x-1}", "\\sum_{k_2=0}^{k_1-1}", "\\Delta^1 f(n) \\\\"
+            "&+", "\\sum_{k_1=0}^{x-1}", "\\sum_{k_2=0}^{k_1-1}", "\\sum_{k_3=0}^{k_2-1}", "\\Delta^2 f(n) \\left.\\vphantom{\\sum_{k_1=0}^{x-1}}\\right)"
+        ).scale(0.95).move_to(DOWN * 0.25)
+        self.add(text)
+        
+        sums = [text[1], text[3], text[4], text[6], text[7], text[8]]
+        self.play(
+            LaggedStart(
+                *[highlight_animation(sum, RED, rate_func = lambda x: 4*x*(1-x)) for sum in sums],
+                lag_ratio=0.15
+            )
+        )
+
+        self.wait()
+
+
+class UhOh(Scene):
+    def construct(self):
+        text = MathTex(
+            "S(x) = \\lim_{n\\to\\infty}\\left(\\sum_{k=1}^{n-1}\\right. (f(k) - f(x + k)) &+", "\\sum_{k_1=0}^{x-1}", "\\Delta^0 f(n) \\\\"
+            "&+", "\\sum_{k_1=0}^{x-1}", "\\sum_{k_2=0}^{k_1-1}", "\\Delta^1 f(n) \\\\"
+            "&+", "\\sum_{k_1=0}^{x-1}", "\\sum_{k_2=0}^{k_1-1}", "\\sum_{k_3=0}^{k_2-1}", "\\Delta^2 f(n) \\left.\\vphantom{\\sum_{k_1=0}^{x-1}}\\right)"
+        ).scale(0.95).move_to(DOWN * 0.25)
+        self.add(text)
+
+        text.save_state()
+
+        lim_text = MathTex("\\lim_{x \\to \\infty} \\Delta^", "3", "f(x) = 0").scale(0.8).move_to(UP * 3.25)
+        self.add(lim_text)
+
+        self.play(
+            text[0:6].animate.set_color(DARK_GREY),
+            text[9:].animate.set_color(DARK_GREY),
+            lim_text.animate.set_color(DARK_GRAY),
+        )
+
+        self.play(
+            highlight_animation(text[8][0:2], YELLOW),
+            highlight_animation(text[7][5:7], YELLOW),
+        )
+
+        self.play(
+            highlight_animation(text[7][0:2], ORANGE),
+            highlight_animation(text[6][4:6], ORANGE),
+        )
+
+        self.play(
+            highlight_animation(text[6][0], RED, scale=1.2)
+        )
+
+        self.play(
+            text.animate.restore(),
+            lim_text.animate.set_color(WHITE),
+        )
+
+        self.remove(*text)
+        text = MathTex(
+            "S(x) = \\lim_{n\\to\\infty}\\left(\\sum_{k=1}^{n-1}\\right. (f(k) - f(x + k)) &+", "\\sum_{k_1=0}^{x-1} \\Delta^0 f(n) \\\\",
+            "&+", "\\sum_{k_1=0}^{x-1}\\sum_{k_2=0}^{k_1-1}\\Delta^1 f(n) \\\\",
+            "&+", "\\sum_{k_1=0}^{x-1}\\sum_{k_2=0}^{k_1-1}\\sum_{k_3=0}^{k_2-1} \\Delta^2 f(n)", "\\left.\\vphantom{\\sum_{k_1=0}^{x-1}}\\right)"
+        ).scale(0.95).move_to(DOWN * 0.25)
+        self.add(text)
+
+        text[1].save_state()
+        self.play(highlight_animation(text[1], GREEN))
+
+        text[3].save_state()
+        self.play(
+            text[1].animate.restore(),
+            highlight_animation(text[3], BLUE)
+        )
+
+        text[5].save_state()
+        self.play(
+            text[3].animate.restore(),
+            highlight_animation(text[5], RED)
+        )
+
+        self.play(text[5].animate.restore())
+
+        new_lim_text = MathTex("\\lim_{x \\to \\infty} \\Delta^", "{10}", "f(x) = 0").scale(0.8).move_to(UP * 3.25)
+        self.play(Transform(lim_text, new_lim_text))
+
+        parenthesis = text[-1]
+        self.remove(*text)
+
+        texts = [
+            "S(x) = \\lim_{n\\to\\infty}\\left(\\sum_{k=1}^{n-1}\\right. (f(k) - f(x + k)) &+ \\sum_{k_1=0}^{x-1} \\Delta^0 f(n) \\\\"
+            "&+ \\sum_{k_1=0}^{x-1}\\sum_{k_2=0}^{k_1-1}\\Delta^1 f(n) \\\\"
+            "&+ \\sum_{k_1=0}^{x-1}\\sum_{k_2=0}^{k_1-1}\\sum_{k_3=0}^{k_2-1} \\Delta^2 f(n)"
+        ]
+
+        for i in range(3, 10):
+            current_text = "\\\\ &+ \\sum_{k_1=0}^{x-1}"
+            for j in range(1, i+1):
+                current_text += f"\\sum_{{k_{{{j+1}}}=0}}^{{k_{{{j}}}-1}}"
+            current_text += f"\\Delta^{{{i}}} f(n)"
+            texts.append(current_text)
+        texts.append("\\left.\\vphantom{\\sum_{k_1=0}^{x-1}}\\right)")
+
+        text = MathTex(
+            *texts
+        ).scale(0.95).move_to(text.get_corner(UP+LEFT), UP+LEFT)
+        self.add(text[0])
+
+        self.play(
+            Write(text[1], run_time = 1.5),
+            parenthesis.animate.move_to(text[-1])
+        )
+
+        self.add(text)
+        self.remove(parenthesis)
+        
+        scale = 12 / text[-2:].width
+
+        text_copy = text.copy()
+        text_copy.scale(scale)
+
+        self.play(
+            text.animate.scale(scale).shift(-text_copy[-2:].get_center()),
+            lim_text.animate(remover=True).scale(scale).shift(-text_copy[-2:].get_center()),
+            run_time = 3,
+            rate_func = cubic_in_out
+        )
+
+        self.play(text.animate(run_time = 2, rate_func = cubic_in_out).scale(7 / text.height).move_to(ORIGIN))
+
+
+        new_text = MathTex(
+            "S(x) = \\lim_{n\\to\\infty}\\left(\\sum_{k=1}^{n-1}\\right. (f(k) - f(x + k)) &+ \\sum_{k_1=0}^{x-1} \\Delta^0 f(n) \\\\"
+            "&+ \\sum_{k_1=0}^{x-1}\\sum_{k_2=0}^{k_1-1}\\Delta^1 f(n) \\\\"
+            "&+ \\sum_{k_1=0}^{x-1}\\sum_{k_2=0}^{k_1-1}\\sum_{k_3=0}^{k_2-1} \\Delta^2 f(n)", "\\left.\\vphantom{\\sum_{k_1=0}^{x-1}}\\right)"
+        ).scale(0.95)
+
+        self.play(
+            Transform(text[0], new_text[0]),
+            Transform(text[-1], new_text[-1]),
+            FadeOut(text[1:-1], shift = DOWN*6),
+            rate_func=cubic_in_out,
+            run_time = 2
+        )
+
+        self.remove(*text)
+
+        text = MathTex(
+            "S(x) = \\lim_{n\\to\\infty}\\left(\\sum_{k=1}^{n-1}\\right. (f(k) - f(x + k)) &+", "\\sum_{k_1=0}^{x-1}", "\\Delta^0 f(n) \\\\",
+            "&+", "\\sum_{k_1=0}^{x-1}\\sum_{k_2=0}^{k_1-1}", "\\Delta^1 f(n) \\\\",
+            "&+", "\\sum_{k_1=0}^{x-1}\\sum_{k_2=0}^{k_1-1}\\sum_{k_3=0}^{k_2-1}", "\\Delta^2 f(n)", "\\left.\\vphantom{\\sum_{k_1=0}^{x-1}}\\right)"
+        ).scale(0.95)
+        self.add(text)
+
+        new_text = MathTex(
+            "S(x) = \\lim_{n\\to\\infty}\\left(\\sum_{k=1}^{n-1}\\right. (f(k) - f(x + k)) &+", "\\Delta^0 f(n)", "\\sum_{k_1=0}^{x-1}", "1 \\\\",
+            "&+", "\\Delta^1 f(n)", "\\sum_{k_1=0}^{x-1}\\sum_{k_2=0}^{k_1-1}", "1 \\\\",
+            "&+", "\\Delta^2 f(n)", "\\sum_{k_1=0}^{x-1}\\sum_{k_2=0}^{k_1-1}\\sum_{k_3=0}^{k_2-1}", "1", "\\left.\\vphantom{\\sum_{k_1=0}^{x-1}}\\right)"
+        ).scale(0.95)
+
+        self.play(
+            highlight_animation(VGroup(text[2], text[5], text[8]), GREEN)
+        )
+
+        self.play(
+            morph_text(text, new_text, [0, 2, [1, {"path_arc": PI*3/4}], 4, 6, [5, {"path_arc": PI*3/4}], 8, 10, [9, {"path_arc": PI*3/4}], 12])
+        )
+
+        self.remove(*text, *new_text)
+        text = MathTex(
+            "S(x) = \\lim_{n\\to\\infty}\\left(\\sum_{k=1}^{n-1}\\right. (f(k) - f(x + k)) &+ \\Delta^0 f(n) \\sum_{k_1=0}^{x-1} 1 \\\\"
+            "&+ \\Delta^1 f(n) \\sum_{k_1=0}^{x-1}\\sum_{k_2=0}^{k_1-1} 1 \\\\"
+            "&+ \\Delta^2 f(n)", "\\sum_{k_1=0}^{x-1}\\sum_{k_2=0}^{k_1-1}\\sum_{k_3=0}^{k_2-1} 1", "\\left.\\vphantom{\\sum_{k_1=0}^{x-1}}\\right)"
+        ).scale(0.95)
+
+        new_text = MathTex(
+            "S(x) = \\lim_{n\\to\\infty}\\left(\\sum_{k=1}^{n-1}\\right. (f(k) - f(x + k)) &+ \\Delta^0 f(n) \\sum_{k_1=0}^{x-1} 1 \\\\"
+            "&+ \\Delta^1 f(n) \\sum_{k_1=0}^{x-1}\\sum_{k_2=0}^{k_1-1} 1 \\\\"
+            "&+ \\Delta^2 f(n)", "\\sum_{k_1=0}^{x-1}\\sum_{k_2=0}^{k_1-1}\\sum_{k_3=0}^{k_2-1} 1", "\\left.\\vphantom{\\sum_{k_1=0}^{x-1}}\\right)"
+        ).scale(1.2)
+        new_text.shift(-new_text[1].get_center())
+        VGroup(new_text[0], new_text[2]).set_fill(opacity=0)
+
+        self.play(
+            Transform(text, new_text),
+            rate_func=cubic_in_out,
+            run_time = 1.5
         )
 
         self.wait()

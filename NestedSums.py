@@ -1,6 +1,6 @@
 from manim import *
-from modules.helpers import fade_and_shift_in, fade_and_shift_out, grow_between, highlight, highlight_animation, morph_text
-from modules.interpolation import cubic_in_out, cubic_in
+from modules.helpers import create_single_arrow, fade_and_shift_in, fade_and_shift_out, grow_between, highlight, highlight_animation, morph_text, shrink_between
+from modules.interpolation import cubic_in_out, cubic_out
 
 
 class Transformation(Scene):
@@ -602,3 +602,159 @@ class UhOh(Scene):
         )
 
         self.wait()
+
+
+class Optimization(Scene):
+    def construct(self):
+
+        V_OFFSET = 1.75
+
+        text = MathTex("\\sum_{k_1=0}^{x-1}", "\\sum_{k_2=0}^{k_1-1}", "\\sum_{k_3=0}^{k_2-1}", "1").scale(1.2)
+        self.add(text)
+
+        sum = MathTex("\\sum_{k_3=0}^{k_2-1}").scale(1.2).move_to(DOWN*V_OFFSET + RIGHT*text[2].get_center())
+        zero_text = MathTex("k_2 = 0").move_to(sum.get_center() * [-1, 1, 1])
+        arrow = create_single_arrow(text[2].get_bottom() + UP*V_OFFSET, sum.get_top()).set_color(BLUE)
+        arrow.save_state()
+        arrow.shift(DOWN*V_OFFSET).set_color(BLACK)
+
+        self.play(
+            FadeIn(VGroup(sum, zero_text), shift=UP*V_OFFSET),
+            VGroup(text[0:2], text[3]).animate.shift(UP*V_OFFSET).set_color(DARK_GRAY),
+            text[2].animate.shift(UP * V_OFFSET),
+            arrow.animate.restore()
+        )
+        
+        new_sum = MathTex("\\sum_{k_3=0}^{-1}").scale(1.2)
+        new_sum.shift(sum[0][4].get_center() - new_sum[0][2].get_center())
+
+        self.play(
+            shrink_between(sum[0][0:2], right=new_sum[0][0]),
+            Transform(sum[0][2:], new_sum[0])
+        )
+
+
+        def create_x(center):
+            return VGroup(
+                Line(center + (LEFT+UP)*0.6, center + (RIGHT+DOWN)*0.6),
+                Line(center + (RIGHT+UP)*0.6, center + (LEFT+DOWN)*0.6),
+            ).set_color(RED).set_stroke(width=10)
+
+        x = create_x(new_sum.get_center())
+
+        self.play(
+            Create(x, run_time=0.5)
+        )
+
+        self.play(
+            text[0].animate.set_color(WHITE),
+            text[1][:-4].animate.set_color(WHITE),
+            text[3].animate.set_color(WHITE),
+            highlight_animation(text[1][-4:], BLUE)
+        )
+
+        new_text = MathTex("\\sum_{k_1=0}^{x-1}", "\\sum_{k_2=1}^{k_1-1}", "\\sum_{k_3=0}^{k_2-1}", "1").scale(1.2).move_to(UP*V_OFFSET)
+        new_text.save_state()
+        highlight(new_text[1][-4:], BLUE)
+        self.play(Transform(text, new_text))
+
+        self.remove(*sum, *sum[0])
+        sum = new_sum
+        self.add(sum)
+
+        self.play(
+            Transform(text, new_text.restore()),
+            VGroup(sum, zero_text, x, arrow).animate(remover=True).shift(DOWN).set_color(BLACK)
+        )
+
+
+        sum_1 = MathTex("\\sum_{k_2=1}^{k_1-1}").scale(1.2).move_to(DOWN*V_OFFSET + RIGHT*text[0].get_center())
+        sum_2 = MathTex("\\sum_{k_2=1}^{k_1-1}").scale(1.2).move_to(DOWN*V_OFFSET + RIGHT*text[2].get_center())
+        arrow_1 = create_single_arrow(text[1].get_bottom(), sum_1.get_top())
+        arrow_2 = create_single_arrow(text[1].get_bottom(), sum_2.get_top())
+        arrows = VGroup(arrow_1, arrow_2).set_color(BLUE)
+        arrows.save_state().shift(DOWN/2).set_color(BLACK)
+        zero_text = MathTex("k_1 = 0").move_to(sum_1.get_left() + LEFT * 0.5, RIGHT)
+        one_text = MathTex("k_1 = 1").move_to(sum_2.get_right() + RIGHT * 0.5, LEFT)
+        
+        self.play(
+            arrows.animate.restore(),
+            FadeIn(VGroup(sum_1, sum_2, zero_text, one_text), shift=UP),
+            VGroup(text[0], text[2:]).animate.set_color(DARK_GRAY)
+        )
+
+
+        new_sum_1 = MathTex("\\sum_{k_2=1}^{-1}").scale(1.2)
+        new_sum_2 = MathTex("\\sum_{k_2=1}^{0}").scale(1.2)
+        new_sum_1.shift(sum_1[0][4].get_center() - new_sum_1[0][2].get_center())
+        new_sum_2.shift(sum_2[0][4].get_center() - new_sum_2[0][1].get_center())
+
+        self.play(
+            LaggedStart(
+                AnimationGroup(
+                    Transform(sum_1[0][2:], new_sum_1[0][:]),
+                    shrink_between(sum_1[0][:2], right=new_sum_1[0][0])
+                ),
+                AnimationGroup(
+                    Transform(sum_2[0][4:], new_sum_2[0][1:]),
+                    Transform(sum_2[0][:4], new_sum_2[0][:1])
+                ),
+                lag_ratio=0.5
+            )
+        )
+
+        x_1 = create_x(new_sum_1.get_center())
+        x_2 = create_x(new_sum_2.get_center())
+
+        self.play(
+                Create(x_1, run_time=0.5),
+        )
+        self.play(
+                Create(x_2, run_time=0.5),
+        )
+
+        self.play(
+            text[0][:-4].animate.set_color(WHITE),
+            text[1:].animate.set_color(WHITE),
+            highlight_animation(text[0][-4:], BLUE)
+        )
+
+        new_text = MathTex("\\sum_{k_1=2}^{x-1}", "\\sum_{k_2=1}^{k_1-1}", "\\sum_{k_3=0}^{k_2-1}", "1").scale(1.2).move_to(UP*V_OFFSET)
+        new_text.save_state()
+        highlight(new_text[0][-4:], BLUE)
+        self.play(Transform(text, new_text))
+
+        self.remove(*sum_1[0])
+        self.add(new_sum_1)
+
+        self.play(
+            Transform(text, new_text.restore()),
+            VGroup(new_sum_1, sum_2, zero_text, one_text, x_1, x_2, arrow_1, arrow_2).animate(remover=True).shift(DOWN).set_color(BLACK)
+        )
+
+
+        six_sums = MathTex("\\sum_{k_1=0}^{x-1}", "\\sum_{k_2=0}^{k_1-1}", "\\sum_{k_3=0}^{k_2-1}", "\\sum_{k_4=0}^{k_3-1}", "\\sum_{k_5=0}^{k_4-1}", "\\sum_{k_6=0}^{k_5-1}", "1")\
+            .move_to(DOWN*V_OFFSET)
+        
+        self.play(
+            LaggedStart(
+                *[fade_and_shift_in(s, LEFT) for s in six_sums],
+                lag_ratio = 0.15
+            )
+        )
+
+        new_six_sums = MathTex("\\sum_{k_1=5}^{x-1}", "\\sum_{k_2=4}^{k_1-1}", "\\sum_{k_3=3}^{k_2-1}", "\\sum_{k_4=2}^{k_3-1}", "\\sum_{k_5=1}^{k_4-1}", "\\sum_{k_6=0}^{k_5-1}", "1")\
+            .move_to(DOWN*V_OFFSET)
+        for s in new_six_sums[:-1]:
+            highlight(s[-1], YELLOW)
+        
+        self.play(
+            LaggedStart(
+                *[Transform(six_sums[i], new_six_sums[i]) for i in reversed(range(len(new_six_sums) - 1))],
+                lag_ratio=0.3
+            )
+        )
+
+        self.play(
+            six_sums.animate(remover=True).shift(DOWN).set_color(BLACK)
+        )

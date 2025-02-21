@@ -348,8 +348,14 @@ def rotate_points(mobj: manim.Mobject, num: int):
 
 
 def create_double_arrow(start, end, **kwargs):
-    arrow_1 = manim.DoubleArrow(start, end, **kwargs)
-    group = manim.VGroup(arrow_1.submobjects)
-    arrow_1.submobjects = []
-    group.add(arrow_1.scale(1.01).set_stroke(width=manim.DEFAULT_STROKE_WIDTH))
+    arrow = manim.DoubleArrow(start, end, **kwargs)
+    group = manim.VGroup(arrow.submobjects)
+    arrow.submobjects = []
+    group.add(arrow.scale(1.01).set_stroke(width=manim.DEFAULT_STROKE_WIDTH))
     return group
+
+def create_single_arrow(start, end, **kwargs):
+    arrow = manim.Arrow(start, end, **kwargs)
+    for i in range(1, len(arrow.points)):
+        arrow.points[i] = arrow.points[0] + (arrow.points[i] - arrow.points[0])*1.01
+    return arrow

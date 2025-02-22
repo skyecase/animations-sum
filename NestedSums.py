@@ -750,7 +750,7 @@ class Optimization(Scene):
         
         self.play(
             LaggedStart(
-                *[Transform(six_sums[i], new_six_sums[i]) for i in reversed(range(len(new_six_sums) - 1))],
+                *[Transform(six_sums[i], new_six_sums[i], rate_func=cubic_out) for i in reversed(range(len(new_six_sums) - 1))],
                 lag_ratio=0.3
             )
         )

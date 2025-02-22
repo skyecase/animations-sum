@@ -13,6 +13,9 @@ def in_out(rate_func):
 def pow_in(order):
     return lambda x: max(0, min(x, 1)) ** order
 
+def pow_out(order):
+    return flip(pow_in(order))
+
 quadratic_in = pow_in(2)
 quadratic_out = flip(quadratic_in)
 quadratic_in_out = in_out(quadratic_in)

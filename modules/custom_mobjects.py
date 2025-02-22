@@ -128,9 +128,10 @@ def create_arrow(
     angle_to_move = (end - start) * (2*modified_buff - angle)
 
 
-    length = abs(angle_to_move * signed_radius)
+    length = -angle_to_move * signed_radius
     size_modifier = 1 if length >= LENGTH_THRESHOLD else length / LENGTH_THRESHOLD
     size_modifier = cubic_out(size_modifier)
+    size_modifier = max(size_modifier, 0) # Don't let it be negative, because that would mess things up.
 
     real_stroke_width = stroke_width * size_modifier
 

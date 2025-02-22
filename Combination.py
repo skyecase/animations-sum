@@ -430,3 +430,126 @@ class Notation(Scene):
             Transform(text, new_text),
             FadeOut(VGroup(m_sums, m_sums_brace, m_sums_brace_text), shift=DOWN*2)
         )
+
+
+
+class OtherDefinition(Scene):
+    def construct(self):
+
+        LEFT_BOUND = 5.5
+
+        top_text = MathTex("\\binom x3").move_to(UP*2.5)
+        self.add(top_text)
+
+        dots = VGroup(*[Dot(RIGHT*i, 0.16, color=BLUE) for i in range(10)])
+        dots.move_to(DOWN*2)
+        self.play(
+            LaggedStart(
+                *[fade_and_shift_in(dot, scale=0, shift=UP*0.5) for dot in dots],
+                lag_ratio=0.05
+            )
+        )
+
+        brace = Brace(dots)
+        brace_text = MathTex("x").move_to(brace.get_bottom() + DOWN*0.2, UP)
+        self.play(
+            fade_and_shift_in(VGroup(brace, brace_text), UP)
+        )
+
+
+        total_choices = Tex("Total choices:").move_to(UP * 0.8)
+        text = MathTex("x").scale(1.2)
+
+
+        self.play(
+            Write(total_choices, run_time=1),
+            FadeIn(text, scale=0),
+            LaggedStart(
+                *[dot.animate(rate_func=lambda t:4*t*(1-t), run_time=0.3).shift(UP*0.2).set_color(RED) for dot in dots],
+                lag_ratio=0.5
+            )
+        )
+
+
+        choice_1 = dots[2]
+
+        self.play(choice_1.animate.scale(1.5).set_color(RED))
+
+        new_dots = VGroup(*[Dot(RIGHT*i, 0.16, color=BLUE) for i in range(9)])
+        new_dots.move_to(DOWN*2)
+        dots = VGroup(*dots[0:2], *dots[3:])
+
+        new_brace = Brace(new_dots)
+        new_brace_text = MathTex("x", "- 1").move_to(new_brace.get_bottom() + DOWN*0.2, UP)
+
+        self.play(
+            choice_1.animate(path_arc=PI/2).scale(1/1.5).move_to(LEFT*LEFT_BOUND),
+            Transform(dots, new_dots),
+            Transform(brace, new_brace),
+            Transform(brace_text[0], new_brace_text[0]),
+            FadeIn(new_brace_text[1], shift=LEFT)
+        )
+
+        self.remove(*brace_text, *new_brace_text)
+        brace_text = new_brace_text
+        self.add(new_brace_text)
+
+        new_text = MathTex("x", "(x - 1)").scale(1.2)
+
+        self.play(
+            Transform(text[0], new_text[0]),
+            FadeIn(new_text[1], shift=LEFT),
+            LaggedStart(
+                *[dot.animate(rate_func=lambda t:4*t*(1-t), run_time=0.3).shift(UP*0.2).set_color(GREEN) for dot in dots],
+                lag_ratio=0.5
+            )
+        )
+
+
+        choice_2 = dots[5]
+
+        self.play(choice_2.animate.scale(1.5).set_color(GREEN))
+
+        new_dots = VGroup(*[Dot(RIGHT*i, 0.16, color=BLUE) for i in range(8)])
+        new_dots.move_to(DOWN*2)
+        dots = VGroup(*dots[0:5], *dots[6:])
+
+        new_brace = Brace(new_dots)
+        new_brace_text = MathTex("x", "- 2").move_to(new_brace.get_bottom() + DOWN*0.2, UP)
+
+
+        self.play(
+            choice_2.animate(path_arc=PI/4).scale(1/1.5).move_to(LEFT*(LEFT_BOUND - 0.5)),
+            Transform(dots, new_dots),
+            Transform(brace, new_brace),
+            Transform(brace_text, new_brace_text),
+        )
+
+
+
+        self.remove(*new_text, *text)
+        text = MathTex("x(x - 1)").scale(1.2)
+        self.add(text)
+        new_text = MathTex("x(x - 1)", "(x - 2)").scale(1.2)
+
+        self.play(
+            Transform(text[0], new_text[0]),
+            FadeIn(new_text[1], shift=LEFT),
+            LaggedStart(
+                *[dot.animate(rate_func=lambda t:4*t*(1-t), run_time=0.3).shift(UP*0.2).set_color(YELLOW) for dot in dots],
+                lag_ratio=0.5
+            )
+        )
+
+
+        choice_3 = dots[1]
+
+        self.play(choice_3.animate.scale(1.5).set_color(YELLOW))
+
+        dots = VGroup(*dots[0:1], *dots[2:])
+
+
+        self.play(
+            choice_3.animate(path_arc=PI/2).scale(1/1.5).move_to(LEFT*(LEFT_BOUND - 1)),
+            fade_and_shift_out(VGroup(dots, brace, brace_text), DOWN)
+        )

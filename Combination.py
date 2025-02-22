@@ -1,6 +1,6 @@
 from manim import *
 from modules.helpers import create_time_getter, create_updater_container, fade_and_shift_in, fade_and_shift_out, highlight_animation, shrink_between
-from modules.interpolation import bounce, cubic_out, pow_out, sin_smooth_in_out
+from modules.interpolation import bounce, cubic_out, pow_out, sin_smooth_in_out, cubic_in
 import random
 
 
@@ -614,3 +614,37 @@ class OtherDefinition(Scene):
             Transform(text[0], new_text[0]),
             FadeIn(new_text[1], shift=UP/2)
         )
+
+
+        self.remove(*text, *new_text)
+        text = MathTex("{x(x - 1)(x - 2) \\over 3!}").shift(DOWN*0.2)
+
+        new_text = MathTex("\\binom x3", "=", "{x(x - 1)(x - 2) \\over 3!}")
+
+        self.play(
+            LaggedStart(
+                AnimationGroup(
+                    VGroup(p_up_1, p_up_2, p_up_3, p_down_1, p_down_2, p_down_3).animate(remover=True, rate_func=cubic_in).shift(LEFT*3),
+                    FadeOut(total_choices, scale=0),
+                ),
+                AnimationGroup(
+                    Transform(top_text[0], new_text[0]),
+                    Transform(text[0], new_text[2])
+                ),
+                FadeIn(new_text[1], scale=0),
+                lag_ratio=0.35
+            )
+        )
+
+        self.remove(*text, *top_text, *new_text)
+        text = MathTex("\\binom x3 = {x(x - 1)(x - 2) \\over 3!}")
+        self.add(text)
+
+        bottom_text = MathTex("\\binom xm = {x(x - 1)\\cdots(x - (m - 1)) \\over m!}").move_to(DOWN*1.5)
+
+        self.play(
+            text.animate.shift(UP*1.5),
+            FadeIn(bottom_text, shift=UP*3)
+        )
+
+        self.wait()

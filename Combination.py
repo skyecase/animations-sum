@@ -553,3 +553,64 @@ class OtherDefinition(Scene):
             choice_3.animate(path_arc=PI/2).scale(1/1.5).move_to(LEFT*(LEFT_BOUND - 1)),
             fade_and_shift_out(VGroup(dots, brace, brace_text), DOWN)
         )
+
+
+        V_SPREAD = 0.75
+
+        choices = VGroup(choice_1, choice_2, choice_3)
+        p_up_1 = VGroup(choice_1.copy(), choice_2.copy().move_to(choice_3), choice_3.copy().move_to(choice_2)).shift(UP*V_SPREAD*(1 - 0.5))
+        p_up_1.save_state()
+        p_up_1.become(choices).set_opacity(0.25)
+
+        self.play(
+            choices.animate.shift(DOWN*V_SPREAD*0.5),
+            p_up_1.animate.restore(),
+            run_time = 0.5
+        )
+
+        p_down_1 = choices
+        p_up_1 = VGroup(p_up_1[0], p_up_1[2], p_up_1[1])
+
+        p_down_2 = VGroup(p_down_1[0].copy().move_to(p_down_1[1]), p_down_1[1].copy().move_to(p_down_1[0]), p_down_1[2].copy()).shift(DOWN*V_SPREAD)
+        p_down_2.save_state()
+        p_down_2.become(p_down_1).set_opacity(0.25)
+
+        p_up_2 = VGroup(p_up_1[0].copy().move_to(p_up_1[1]), p_up_1[1].copy().move_to(p_up_1[0]), p_up_1[2].copy()).shift(UP*V_SPREAD)
+        p_up_2.save_state()
+        p_up_2.become(p_up_1).set_opacity(0.25)
+
+
+        self.play(
+            p_up_2.animate.restore(),
+            p_down_2.animate.restore(),
+            run_time = 0.5
+        )
+
+
+        p_up_2 = VGroup(p_up_2[1], p_up_2[0], p_up_2[2])
+        p_down_2 = VGroup(p_down_2[1], p_down_2[0], p_down_2[2])
+
+        p_down_3 = VGroup(p_down_2[0].copy(), p_down_2[1].copy().move_to(p_down_2[2]), p_down_2[2].copy().move_to(p_down_2[1])).shift(DOWN*V_SPREAD)
+        p_down_3.save_state()
+        p_down_3.become(p_down_2).set_opacity(0.25)
+
+        p_up_3 = VGroup(p_up_2[0].copy(), p_up_2[1].copy().move_to(p_up_2[2]), p_up_2[2].copy().move_to(p_up_2[1])).shift(UP*V_SPREAD)
+        p_up_3.save_state()
+        p_up_3.become(p_up_2).set_opacity(0.25)
+
+
+        self.play(
+            p_up_3.animate.restore(),
+            p_down_3.animate.restore(),
+            run_time = 0.5
+        )
+
+
+        self.remove(*text, *new_text)
+        text = MathTex("x(x - 1)(x - 2)").scale(1.2)
+        new_text = MathTex("{x(x - 1)(x - 2)", "\\over 3!}").shift(DOWN*0.2)
+
+        self.play(
+            Transform(text[0], new_text[0]),
+            FadeIn(new_text[1], shift=UP/2)
+        )

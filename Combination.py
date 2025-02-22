@@ -1,5 +1,5 @@
 from manim import *
-from modules.helpers import create_time_getter, create_updater_container, highlight_animation, shrink_between
+from modules.helpers import create_time_getter, create_updater_container, fade_and_shift_in, fade_and_shift_out, highlight_animation, shrink_between
 from modules.interpolation import bounce, cubic_out, pow_out, sin_smooth_in_out
 import random
 
@@ -348,4 +348,85 @@ class BinomialCoefficientDerivation(Scene):
                 Write(VGroup(new_text[4], description)),
                 lag_ratio=0.7
             )
+        )
+
+
+
+class Notation(Scene):
+    def construct(self):
+        text = MathTex("\\sum_{k_1=0}^{x-1}", "\\sum_{k_2=0}^{k_1-1}", "\\sum_{k_3=0}^{k_2-1}", "1", "=").scale(1.2)
+        description = Tex("The number of possible ways\\\\to pick $3$ out of $x$ items").move_to((text[4].get_right() + 0.25)*RIGHT, LEFT)
+        VGroup(text, description).move_to(ORIGIN)
+        self.add(text, description)
+
+        binomial_coefficients_text = Tex("Binomial Coefficients").scale(1.25).shift(UP*3)
+
+        self.play(
+            VGroup(text, description).animate.move_to(UP),
+            FadeIn(binomial_coefficients_text, shift=UP*0.75, scale=0.9)
+        )
+
+        SPREAD = 2.5
+
+        notation_1 = MathTex("_xC_3").scale(1.2).move_to(DOWN*2 + LEFT*2*SPREAD)
+        notation_2 = MathTex("C_{x,3}").scale(1.2).move_to(DOWN*2 + LEFT*SPREAD)
+        notation_3 = MathTex("\\binom x3").scale(1.2).move_to(DOWN*2)
+        notation_4 = MathTex("^xC_3").scale(1.2).move_to(DOWN*2 + RIGHT*SPREAD)
+        notation_5 = MathTex("C^x_3").scale(1.2).move_to(DOWN*2 + 2*RIGHT*SPREAD)
+
+        self.play(
+            LaggedStart(
+                fade_and_shift_in(notation_1, scale=0.5, shift=UP),
+                fade_and_shift_in(notation_2, scale=0.5, shift=UP),
+                fade_and_shift_in(notation_3, scale=0.5, shift=UP),
+                fade_and_shift_in(notation_4, scale=0.5, shift=UP),
+                fade_and_shift_in(notation_5, scale=0.5, shift=UP),
+                lag_ratio = 0.25
+            )
+        )
+
+        self.play(
+            LaggedStart(
+                notation_3.animate.shift(UP*0.5),
+                fade_and_shift_out(notation_1, DOWN),
+                fade_and_shift_out(notation_2, DOWN),
+                fade_and_shift_out(notation_4, DOWN),
+                fade_and_shift_out(notation_5, DOWN),
+            )
+        )
+
+        choose_text = Tex("``$x$ choose $3$\"").move_to(notation_3.get_right() + RIGHT*0.75, LEFT)
+
+        self.play(Write(choose_text))
+
+
+        new_text = MathTex("\\sum_{k_1=0}^{x-1}", "\\sum_{k_2=0}^{k_1-1}", "\\sum_{k_3=0}^{k_2-1}", "1", "=", "\\binom x3").scale(1.2)
+
+        self.play(
+            Transform(text, new_text[:-1]),
+            Transform(notation_3[0], new_text[-1]),
+            FadeOut(VGroup(binomial_coefficients_text, description), shift=UP),
+            FadeOut(choose_text, shift=DOWN)
+        )
+
+        self.remove(*text, *new_text, *notation_3)
+        text = MathTex("\\sum_{k_1=0}^{x-1}", "\\sum_{k_2=0}^{k_1-1}", "\\sum_{k_3=0}^{k_2-1}", "1", "=", "\\binom x3").scale(1.2)
+        self.add(text)
+
+        m_sums =  MathTex("\\sum_{k_1=0}^{x-1}\\sum_{k_2=0}^{k_1-1}\\sum_{k_3=0}^{k_2-1}\\cdots\\sum_{k_m=0}^{k_{m-1}-1}", "1", "= \\binom xm").move_to(DOWN)
+        m_sums_brace = Brace(VGroup(m_sums[0][4], m_sums[0][-1]))
+        m_sums_brace_text = Tex("$m$ sums").scale(0.8).move_to(m_sums_brace.get_bottom() + DOWN*0.2, UP)
+
+        self.play(
+            text.animate.shift(UP * 2).scale(1/1.2),
+            FadeIn(VGroup(m_sums, m_sums_brace, m_sums_brace_text), shift=UP*2)
+        )
+
+        new_text = text.copy()
+        new_text.shift(UP*2.5 - new_text[-1].get_center())
+        new_text[:-1].set_color(BLACK)
+
+        self.play(
+            Transform(text, new_text),
+            FadeOut(VGroup(m_sums, m_sums_brace, m_sums_brace_text), shift=DOWN*2)
         )

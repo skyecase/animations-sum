@@ -443,17 +443,11 @@ class OtherDefinition(Scene):
 
         dots = VGroup(*[Dot(RIGHT*i, 0.16, color=BLUE) for i in range(10)])
         dots.move_to(DOWN*2)
-        self.play(
-            LaggedStart(
-                *[fade_and_shift_in(dot, scale=0, shift=UP*0.5) for dot in dots],
-                lag_ratio=0.05
-            )
-        )
 
         brace = Brace(dots)
         brace_text = MathTex("x").move_to(brace.get_bottom() + DOWN*0.2, UP)
         self.play(
-            fade_and_shift_in(VGroup(brace, brace_text), UP)
+            fade_and_shift_in(VGroup(brace, brace_text, dots), UP)
         )
 
 

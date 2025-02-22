@@ -1,5 +1,5 @@
 from manim import *
-from modules.helpers import create_time_getter, create_updater_container, fade_and_shift_in, fade_and_shift_out, highlight_animation, shrink_between
+from modules.helpers import create_time_getter, create_updater_container, fade_and_shift_in, fade_and_shift_out, highlight_animation, morph_text, shrink_between
 from modules.interpolation import bounce, cubic_out, pow_out, sin_smooth_in_out, cubic_in
 import random
 
@@ -640,5 +640,100 @@ class OtherDefinition(Scene):
             text.animate.shift(UP*1.5),
             FadeIn(bottom_text, shift=UP*3)
         )
+
+        self.wait()
+
+
+class GeneralSolution(Scene):
+    def construct(self):
+        text = MathTex(
+            "S(x) = \\lim_{n\\to\\infty}\\left(\\sum_{k=1}^{n-1}\\right. (f(k) - f(x + k)) &+ \\Delta^0 f(n)", "\\sum_{k_1=0}^{x-1} 1 \\\\",
+            "&+ \\Delta^1 f(n)", "\\sum_{k_1=0}^{x-1}\\sum_{k_2=0}^{k_1-1} 1 \\\\",
+            "&+ \\Delta^2 f(n)", "\\sum_{k_1=0}^{x-1}\\sum_{k_2=0}^{k_1-1}\\sum_{k_3=0}^{k_2-1} 1", "\\left.\\vphantom{\\sum_{k_1=0}^{x-1}}\\right)"
+        ).scale(0.95).move_to(DOWN * 0.25)
+        self.add(text)
+
+        lim_text = MathTex("\\lim_{x \\to \\infty} \\Delta^", "3", "f(x) = 0").scale(0.8).move_to(UP * 3.25)
+        self.add(lim_text)
+
+        self.play(
+            fade_and_shift_in(lim_text, UP),
+            fade_and_shift_in(text, UP),
+        )
+
+        new_text = MathTex(
+            "S(x) = \\lim_{n\\to\\infty}\\left(\\sum_{k=1}^{n-1}\\right. (f(k) - f(x + k)) &+ \\Delta^0 f(n)", "\\binom x1 \\\\",
+            "&+ \\Delta^1 f(n)", "\\binom x2 \\\\",
+            "&+ \\Delta^2 f(n)", "\\binom x3", "\\left.\\vphantom{\\sum_{k_1=0}^{x-1}}\\right)"
+        ).move_to(DOWN * 0.25)
+
+        self.play(Transform(text, new_text))
+
+        new_text = MathTex(
+            "S(x) = \\lim_{n\\to\\infty}\\left(\\sum_{k=1}^{n-1} (f(k) - f(x + k)) + \\Delta^0 f(n)", "\\binom x1",
+            "+ \\Delta^1 f(n)", "\\binom x2",
+            "+ \\Delta^2 f(n)", "\\binom x3", "\\right)"
+        ).scale(0.75)
+
+        self.play(Transform(text, new_text, path_arc=PI/2))
+
+        self.remove(*text)
+        text = MathTex(
+            "S(x) = \\lim_{n\\to\\infty}\\left(\\sum_{k=1}^{n-1} (f(k) - f(x + k)) +", "\\Delta^0 f(n)\\binom x1 + \\Delta^1 f(n)\\binom x2 + \\Delta^2 f(n)\\binom x3", "\\right)"
+        ).scale(0.75)
+        self.add(text)
+
+        brace = Brace(text[1])
+        brace_text = MathTex("\\sum_{k=1}^3 \\Delta^{k-1}f(n) \\binom xk").scale(0.85).move_to(brace.get_bottom() + DOWN*0.2, UP)
+
+        self.play(
+            fade_and_shift_in(VGroup(brace, brace_text), UP)
+        )
+
+        new_text = MathTex("S(x) = \\lim_{n\\to\\infty}\\left(\\sum_{k=1}^{n-1} (f(k) - f(x + k)) +", "\\sum_{k=1}^3 \\Delta^{k-1}f(n) \\binom xk", "\\right)")
+
+        shift = new_text[1].get_center() - brace_text.get_center() + DOWN*text[1].height/4
+
+        self.play(
+            lim_text.animate.scale(1/0.8).move_to(UP*2),
+            FadeOut(VGroup(text[1], brace), shift=shift, scale=0.5),
+            Transform(brace_text[0], new_text[1]),
+            Transform(VGroup(text[0], text[2]), VGroup(new_text[0], new_text[2]))
+        )
+
+
+        self.remove(*text, *brace_text)
+        text = MathTex("S(x) = \\lim_{n\\to\\infty}\\left(\\sum_{k=1}^{n-1} (f(k) - f(x + k)) + \\sum_{k=1}^3", "\\Delta^{k-1}f(n)", "\\binom xk", "\\right)")
+        self.add(text)
+
+        new_text = MathTex("S(x) = \\lim_{n\\to\\infty}\\left(\\sum_{k=1}^{n-1} (f(k) - f(x + k)) + \\sum_{k=1}^3", "\\binom xk", "\\Delta^{k-1}f(n)", "\\right)")
+
+        self.play(morph_text(text, new_text, [0, 2, 1, 3], path_arc=PI*3/4))
+
+        self.remove(*text)
+        text = MathTex("S(x) = \\lim_{n\\to\\infty}\\left(\\sum_{k=1}^{n-1} (f(k) - f(x + k)) +", "\\sum_{k=1}^3 \\binom xk \\Delta^{k-1}f(n) \\right)")
+        self.add(text)
+
+        self.play(
+            highlight_animation(lim_text[1], YELLOW),
+            highlight_animation(text[1][0], YELLOW),
+        )
+
+        new_text = MathTex("S(x) = \\lim_{n\\to\\infty}\\left(\\sum_{k=1}^{n-1} (f(k) - f(x + k)) +", "\\sum_{k=1}^m \\binom xk \\Delta^{k-1}f(n) \\right)")
+        new_lim_text = MathTex("\\lim_{x \\to \\infty} \\Delta^", "m", "f(x) = 0").move_to(UP*2)
+
+        self.play(
+            Transform(text, new_text),
+            Transform(lim_text, new_lim_text)
+        )
+
+
+        rect = SurroundingRectangle(text, buff=MED_SMALL_BUFF, color=WHITE)
+        def rect_update_function(rect: SurroundingRectangle, alpha: float):
+            rect.become(SurroundingRectangle(text, buff=MED_SMALL_BUFF + 0.25*(1-cubic_out(alpha)), color=WHITE))
+            rect.set_stroke(opacity=alpha)
+        self.play(UpdateFromAlphaFunc(rect, rect_update_function), rate_func=linear)
+        # self.play(UpdateFromAlphaFunc(rect, rect_update_function), rate_func=lambda t: 1-t)
+        # self.remove(rect)
 
         self.wait()

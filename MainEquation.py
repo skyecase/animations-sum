@@ -36,7 +36,7 @@ class ThreeSteps(Scene):
         n_text = MathTex("n").move_to(axes.coords_to_point(21, 0) + DOWN * 0.35, UP).set_color(N_COLOR)
         n_line = DottedLine(n_text.get_top() + UP*0.1, axes.coords_to_point(21, 6), stroke_width=3).set_color(N_COLOR)
 
-        curve = ParametricFunction(lambda t: axes.coords_to_point(t, s(t)), [20, 26.5], stroke_width=3, color=YELLOW)
+        curve = ParametricFunction(lambda t: axes.coords_to_point(t, s(t)), [19, 26.5], stroke_width=3, color=YELLOW)
 
         self.play(
             LaggedStart(
@@ -175,8 +175,8 @@ class ThreeSteps(Scene):
             npx_line.become(DottedLine(npx_text.get_top() + UP*0.1, axes.coords_to_point(21 + x, 6), stroke_width=3).set_color(X_COLOR))
         u.add_updater(updater)
 
-        self.play(x_vt.animate.set_value(0.8), run_time = 3)
-        self.play(x_vt.animate.set_value(PI), run_time = 3)
+        self.play(x_vt.animate.set_value(-1.5), run_time = 3)
+        self.play(x_vt.animate.set_value(PI), run_time = 4)
 
         u.remove_updater(updater)
 

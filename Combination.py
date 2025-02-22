@@ -1,5 +1,5 @@
 from manim import *
-from modules.helpers import create_time_getter, create_updater_container, highlight_animation
+from modules.helpers import create_time_getter, create_updater_container, highlight_animation, shrink_between
 from modules.interpolation import bounce, cubic_out, pow_out, sin_smooth_in_out
 import random
 
@@ -156,34 +156,11 @@ class BinomialCoefficientDerivation(Scene):
         )
 
 
-        plus_one = MathTex("+1").scale(0.75).move_to(running_total[0].get_right() + RIGHT*0.2, LEFT)
-
         iterate_state()
 
         running_total.become(MathTex(iterations, ".").scale(1.5))
         running_total.move_to(two_digit_invisible[1].get_center() - running_total[1].get_center())
 
-        self.play(
-            FadeOut(plus_one, shift=UP, scale=1.25, rate_func=linear),
-            points[4:6].animate(rate_func=pow_out(5), run_time=0.5).shift(RIGHT)
-        )
-
-        iterate_state()
-
-        running_total.become(MathTex(iterations, ".").scale(1.5))
-        running_total.move_to(two_digit_invisible[1].get_center() - running_total[1].get_center())
-
-        self.play(
-            FadeOut(plus_one, shift=UP, scale=1.25, rate_func=linear),
-            points[4:6].animate(rate_func=pow_out(5), run_time=0.5).shift(RIGHT)
-        )
-
-
-
-        iterations_vt = ValueTracker(iterations)
-
-        self.remove(*points)
-        self.add(points)
 
 
         get_time = create_time_getter(self)
@@ -191,22 +168,10 @@ class BinomialCoefficientDerivation(Scene):
         # Holds tuples of (start_time, offset_pos, mobj), 
         plus_one_pool = []
 
-        random.seed(1234)
-
-        # Does everything you can possibly imagine
-        def monster_updater(_):
+        # Increments the running total and handles the +1s
+        def running_total_updater(_):
             nonlocal plus_one_pool
             time = get_time()
-            while iterations <= iterations_vt.get_value() - 1:
-                iterate_state()
-                new_plus_one = MathTex("+1").scale(0.75)
-                self.add(new_plus_one)
-                plus_one_pool.append((
-                    time,
-                    0.5*RIGHT*(random.random()-0.5),
-                    new_plus_one
-                ))
-            points.become(get_points_for_state())
             running_total.become(MathTex(iterations, ".").scale(1.5))
 
             decimal_center = one_digit_invisible[1].get_center()
@@ -231,45 +196,86 @@ class BinomialCoefficientDerivation(Scene):
                 mobj.become(MathTex("+1").scale(0.75).move_to(one_digit_invisible[0].get_top() + UP*0.3 + offset_pos).set_fill(opacity = 1-alpha))
                 mobj.scale(0.5 + 0.75*(alpha**0.5))
                 mobj.shift(RIGHT*alpha*offset_pos[0] + 1.5*UP*alpha*(1+alpha)/2)
-        u.add_updater(monster_updater)
+        u.add_updater(running_total_updater)
+
+
+        plus_one_pool.append((
+            get_time(),
+            0.5*RIGHT*(random.random()-0.5),
+            MathTex("+1")
+        ))
+        self.add(plus_one_pool[-1][2])
+        self.play(points[4:6].animate(rate_func=pow_out(5), run_time=0.5).shift(RIGHT))
+        self.wait(0.5)
+
+        plus_one_pool.append((
+            get_time(),
+            0.5*RIGHT*(random.random()-0.5),
+            MathTex("+1")
+        ))
+        self.add(plus_one_pool[-1][2])
+        iterate_state()
+        self.play(points[4:6].animate(rate_func=pow_out(5), run_time=0.5).shift(RIGHT))
+
+        self.wait(0.5)
+
+
+        iterations_vt = ValueTracker(iterations)
+
+        self.remove(*points)
+        self.add(points)
+
+        random.seed(1234)
+
+        # Sets the points and adds +1s to the pool
+        def pool_and_point_updater(_):
+            nonlocal plus_one_pool
+            time = get_time()
+            while iterations <= iterations_vt.get_value() - 1:
+                iterate_state()
+                new_plus_one = MathTex("+1").scale(0.75)
+                self.add(new_plus_one)
+                plus_one_pool.append((
+                    time,
+                    0.5*RIGHT*(random.random()-0.5),
+                    new_plus_one
+                ))
+            points.become(get_points_for_state())
+        u.add_updater_before(pool_and_point_updater, running_total_updater)
 
         iterations_vt.increment_value(0.999)
 
-        self.play(iterations_vt.animate.set_value(120), run_time = 5, rate_func=sin_smooth_in_out(0.15))
+        self.play(iterations_vt.animate.set_value(120), run_time = 5, rate_func=sin_smooth_in_out(0.5))
 
         self.wait()
 
-        return
 
+        u.remove_updater_index(0)
+        u.remove_updater_index(0)
 
-        while state[0] < 10:
-            iterate_state()
-            if state[0] == 10: break
-            points.become(get_points_for_state())
-            running_total.become(MathTex(iterations).move_to(RIGHT * 5 + UP * 2).scale(1.5))
+        new_running_total = MathTex("1", ".").scale(1.5)
+        new_running_total.shift(one_digit_invisible[1].get_center() - new_running_total[1].get_center())
 
-            self.wait(0.15)
-            # self.play(
-            #     Transform(points, get_points_for_state(), run_time = 0.1, rate_func = pow_out(5))
-            # )
-
-
-
+        iterations_vt.set_value(0.999)
         iterations = 1
         state = [2, 1, 0]
-        points.become(get_points_for_state())
-        running_total.become(MathTex(iterations).move_to(RIGHT * 5 + UP * 2).scale(1.5))
+        self.play(
+            text[3].animate.restore().move_to(text[3]).set_color(WHITE),
+            running_total[0][0].animate.become(new_running_total[0][0]),
+            shrink_between(running_total[0][1:], new_running_total[0][0]),
+            points.animate(path_arc=-1).become(get_points_for_state())
+        )
 
-        while state[0] < 10:
-            iterate_state()
-            if state[0] == 10: break
-            points.become(get_points_for_state())
-            running_total.become(MathTex(iterations).move_to(RIGHT * 5 + UP * 2).scale(1.5))
+        self.remove(*running_total[0])
+        running_total = new_running_total
+        self.add(running_total[0])
 
-            self.wait(0.1)
-            # self.play(
-            #     Transform(points, get_points_for_state(), run_time = 0.1, rate_func = pow_out(5))
-            # )
+        u.add_updater(pool_and_point_updater)
+        u.add_updater(running_total_updater)
+
+        self.play(iterations_vt.animate.set_value(120), rate_func=sin_smooth_in_out(0.8), run_time = 10)
+
+        self.wait()
 
 
 

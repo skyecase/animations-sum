@@ -1,14 +1,17 @@
 from manim import *
-from modules.helpers import highlight_animation
-from modules.interpolation import bounce, cubic_out, pow_out
+from modules.helpers import create_time_getter, create_updater_container, highlight_animation
+from modules.interpolation import bounce, cubic_out, pow_out, sin_smooth_in_out
+import random
 
 
 def pow_out(pow):
-    return lambda x: 1 - (1 - x)**pow
+    return lambda x: 1 - (1 - min(1, max(0, x)))**pow
 
 
 class BinomialCoefficientDerivation(Scene):
     def construct(self):
+        u = create_updater_container(self)
+
         V_OFFSET = 1.75
 
         text = MathTex("\\sum_{k_1=2}^{x-1}", "\\sum_{k_2=1}^{k_1-1}", "\\sum_{k_3=0}^{k_2-1}", "1").scale(1.2).move_to(UP * V_OFFSET)
@@ -26,16 +29,6 @@ class BinomialCoefficientDerivation(Scene):
                 *[FadeIn(VGroup(dots[i], labels[i]), scale=0.5, shift = UP, rate_func = pow_out(3)) for i in range(len(dots))]
             )
         )
-
-
-        # self.play(
-        #     LaggedStart(
-        #         text[0].animate.set_color(RED),
-        #         text[1].animate.set_color(GREEN),
-        #         text[2].animate.set_color(BLUE),
-        #         lag_ratio=0.25
-        #     )
-        # )
 
 
         state = [2, 1, 0]
@@ -75,14 +68,6 @@ class BinomialCoefficientDerivation(Scene):
             FadeIn(points[0], scale=3, rate_func = bounce()),
             FadeIn(points[1], scale=0)
         )
-        
-
-        # for i in range(3, 8):
-        #     while state[0] < i: iterate_state()
-        #     self.wait(0.75)
-        #     new_points = get_points_for_state()
-        #     points[0].become(new_points[0])
-        #     points[1].become(new_points[1])
 
 
         for _ in range(3, 8):
@@ -99,31 +84,11 @@ class BinomialCoefficientDerivation(Scene):
             FadeIn(points[3], scale=0)
         )
 
-        # for i in range(2, 7):
-        #     while state[1] < i: iterate_state()
-        #     self.wait(0.75)
-        #     new_points = get_points_for_state()
-        #     points[2].become(new_points[2])
-        #     points[3].become(new_points[3])
-
 
         for _ in range(2, 7):
             self.play(points[2:4].animate.shift(RIGHT), rate_func=pow_out(7.5), run_time=0.75)
 
         while state[0] < 8: iterate_state()
-
-        # new_points = get_points_for_state()
-        # points[0].become(new_points[0])
-        # points[1].become(new_points[1])
-        # points[2].become(new_points[2])
-        # points[3].become(new_points[3])
-
-        # for i in range(2, 6):
-        #     while state[1] < i: iterate_state()
-        #     self.wait(0.75)
-        #     new_points = get_points_for_state()
-        #     points[2].become(new_points[2])
-        #     points[3].become(new_points[3])
 
         self.play(
             points[0:2].animate.shift(RIGHT),
@@ -140,7 +105,6 @@ class BinomialCoefficientDerivation(Scene):
 
 
         text[2].save_state()
-        # new_points = get_points_for_state()
         self.play(
             text[1].animate(rate_func=cubic_out).restore().set_color(GREEN),
             highlight_animation(text[2], BLUE, rate_func=cubic_out),
@@ -148,15 +112,9 @@ class BinomialCoefficientDerivation(Scene):
             FadeIn(points[5], scale=0)
         )
 
-        # self.remove(*points)
-        # self.add(points)
-
 
         for _ in range(4):
             self.play(points[4:6].animate.shift(RIGHT), rate_func=pow_out(5), run_time=0.5)
-            # iterate_state()
-            # self.wait(0.75)
-            # points.become(get_points_for_state())
         
         self.play(
             points[2:4].animate.shift(RIGHT),
@@ -178,9 +136,18 @@ class BinomialCoefficientDerivation(Scene):
         )
 
 
+        # These are used to align the running total
+        three_digit_invisible = MathTex("000", ".").scale(1.5)
+        two_digit_invisible = MathTex("00", ".").scale(1.5)
+        one_digit_invisible = MathTex("0", ".").scale(1.5)
+        three_digit_invisible.move_to(RIGHT*3 + UP*V_OFFSET - three_digit_invisible[0].get_center())
+        two_digit_invisible.move_to(RIGHT*3 + UP*V_OFFSET - two_digit_invisible[0].get_center())
+        one_digit_invisible.move_to(RIGHT*3 + UP*V_OFFSET - one_digit_invisible[0].get_center())
+
         running_total = MathTex(iterations, ".").scale(1.5)
-        running_total.move_to(RIGHT*3 + UP*V_OFFSET - running_total[0].get_center())
-        running_total_title = Tex("Total").move_to(running_total[0].get_bottom() + DOWN * 0.2, UP)
+        running_total.move_to(two_digit_invisible[1].get_center() - running_total[1].get_center())
+        running_total_title = Tex("Total").move_to(three_digit_invisible[0].get_bottom() + DOWN * 0.2, UP)
+
 
         self.play(
             text.animate.shift(LEFT * 1.5),
@@ -188,8 +155,91 @@ class BinomialCoefficientDerivation(Scene):
             FadeIn(running_total_title, shift = LEFT*1.5)
         )
 
-        return
 
+        plus_one = MathTex("+1").scale(0.75).move_to(running_total[0].get_right() + RIGHT*0.2, LEFT)
+
+        iterate_state()
+
+        running_total.become(MathTex(iterations, ".").scale(1.5))
+        running_total.move_to(two_digit_invisible[1].get_center() - running_total[1].get_center())
+
+        self.play(
+            FadeOut(plus_one, shift=UP, scale=1.25, rate_func=linear),
+            points[4:6].animate(rate_func=pow_out(5), run_time=0.5).shift(RIGHT)
+        )
+
+        iterate_state()
+
+        running_total.become(MathTex(iterations, ".").scale(1.5))
+        running_total.move_to(two_digit_invisible[1].get_center() - running_total[1].get_center())
+
+        self.play(
+            FadeOut(plus_one, shift=UP, scale=1.25, rate_func=linear),
+            points[4:6].animate(rate_func=pow_out(5), run_time=0.5).shift(RIGHT)
+        )
+
+
+
+        iterations_vt = ValueTracker(iterations)
+
+        self.remove(*points)
+        self.add(points)
+
+
+        get_time = create_time_getter(self)
+
+        # Holds tuples of (start_time, offset_pos, mobj), 
+        plus_one_pool = []
+
+        random.seed(1234)
+
+        # Does everything you can possibly imagine
+        def monster_updater(_):
+            nonlocal plus_one_pool
+            time = get_time()
+            while iterations <= iterations_vt.get_value() - 1:
+                iterate_state()
+                new_plus_one = MathTex("+1").scale(0.75)
+                self.add(new_plus_one)
+                plus_one_pool.append((
+                    time,
+                    0.5*RIGHT*(random.random()-0.5),
+                    new_plus_one
+                ))
+            points.become(get_points_for_state())
+            running_total.become(MathTex(iterations, ".").scale(1.5))
+
+            decimal_center = one_digit_invisible[1].get_center()
+            if iterations >= 10 and iterations < 100: decimal_center = two_digit_invisible[1].get_center()
+            if iterations >= 100: decimal_center = three_digit_invisible[1].get_center()
+            running_total.move_to(decimal_center - running_total[1].get_center())
+
+            FADE_TIME = 1
+
+            oldest_living_plus_one_index = -1
+            for i in range(len(plus_one_pool)):
+                if plus_one_pool[i][0] < time - FADE_TIME:
+                    oldest_living_plus_one_index = i
+                    self.remove(plus_one_pool[oldest_living_plus_one_index][2])
+                else:
+                    break
+            if oldest_living_plus_one_index != -1:
+                plus_one_pool = plus_one_pool[oldest_living_plus_one_index:]
+            
+            for (start_time, offset_pos, mobj) in plus_one_pool:
+                alpha = (time - start_time) / FADE_TIME
+                mobj.become(MathTex("+1").scale(0.75).move_to(one_digit_invisible[0].get_top() + UP*0.3 + offset_pos).set_fill(opacity = 1-alpha))
+                mobj.scale(0.5 + 0.75*(alpha**0.5))
+                mobj.shift(RIGHT*alpha*offset_pos[0] + 1.5*UP*alpha*(1+alpha)/2)
+        u.add_updater(monster_updater)
+
+        iterations_vt.increment_value(0.999)
+
+        self.play(iterations_vt.animate.set_value(120), run_time = 5, rate_func=sin_smooth_in_out(0.15))
+
+        self.wait()
+
+        return
 
 
         while state[0] < 10:

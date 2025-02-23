@@ -290,16 +290,6 @@ class DiscreteContinuous(Scene):
         discrete_underline = Line(discrete_header.get_corner(DOWN + LEFT), discrete_header.get_corner(DOWN + RIGHT), stroke_width=3).shift(DOWN * 0.1)
         continuous_underline = Line(continuous_header.get_corner(DOWN + LEFT), continuous_header.get_corner(DOWN + RIGHT), stroke_width=3).shift(DOWN * 0.1)
 
-        self.play(
-            LaggedStart(
-                Write(discrete_header),
-                Create(discrete_underline, rate_func=cubic_out),
-                Write(continuous_header),
-                Create(continuous_underline, rate_func=cubic_out),
-                lag_ratio = 0.2
-            )
-        )
-
         sum = MathTex("\\sum").move_to(LEFT*DIST_FROM_CENTER + UP*1/2).scale(1.25)
         integral = MathTex("\\int").move_to(RIGHT*DIST_FROM_CENTER + UP*1/2).scale(1.25)
 
@@ -310,7 +300,14 @@ class DiscreteContinuous(Scene):
         self.play(
             arrow_1.animate.restore(),
             FadeIn(sum, scale=0),
-            FadeIn(integral, scale=0)
+            FadeIn(integral, scale=0),
+            LaggedStart(
+                Write(discrete_header),
+                Create(discrete_underline, rate_func=cubic_out),
+                Write(continuous_header),
+                Create(continuous_underline, rate_func=cubic_out),
+                lag_ratio = 0.2
+            )
         )
 
         delta = MathTex("\\Delta").move_to(LEFT*DIST_FROM_CENTER + DOWN*1.5).scale(2)

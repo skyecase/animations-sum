@@ -44,15 +44,32 @@ class OrderZero(Scene):
 
 class OrderOne(Scene):
     def construct(self):
-        top_text = MathTex("\\lim_{x \\to \\infty} \\Delta f(x) = 0").scale(0.8).move_to(UP*3)
-        text = MathTex("S(x) = \\lim_{n \\to \\infty} \\left(\\sum_{k=1}^n (f(k) - f(x + k)) +", "\\sum_{k=1}^x", "f(n + k", ")", "\\right)").move_to(UP)
-        self.add(text, top_text)
 
-        self.play(highlight_animation(text[2:4], BLUE))
+        top_text = MathTex("\\lim_{x \\to \\infty} \\Delta f(x) = 0")
+        text = MathTex("S(x) = \\lim_{n \\to \\infty} \\left(\\sum_{k=1}^n (f(k) - f(x + k)) +", "\\sum_{k=1}^x", "f(n + k", ")", "\\right)")
+
+        self.play(Write(top_text))
+
+        self.play(
+            FadeIn(text, shift=UP*2),
+            top_text.animate.shift(UP*2)
+        )
+
+        text[1].save_state()
+
+        self.play(highlight_animation(text[1], RED))
+        self.play(
+            highlight_animation(text[2:4], BLUE),
+            text[1].animate.restore()
+        )
 
         equation = MathTex("f(a + b) = f(a) +", "\\sum_{k=0}^{b-1}", "\\Delta f(a + k", ")").move_to(DOWN*1.5)
 
-        self.play(fade_and_shift_in(equation, UP))
+        self.play(
+            top_text.animate.scale(0.8).move_to(UP*3),
+            text.animate.shift(UP),
+            FadeIn(equation, shift=UP)
+        )
 
 
         self.play(
@@ -97,6 +114,7 @@ class OrderOne(Scene):
 
         new_equation = MathTex("f(n +", "k_1", ") = f(n) +", "\\sum_{k_2=0}^{k_1-1}", "\\Delta f(n + k_2)").move_to(DOWN*1.5)
         self.play(highlight_animation(VGroup(equation[1], equation[3][0]), YELLOW))
+        highlight(VGroup(new_equation[0:2], new_equation[2][0]), BLUE)
 
         self.play(
             morph_text(equation, new_equation, [0, 1, 2, None, 4], ignore_1=[3], ignore_2=[3]),
@@ -108,6 +126,7 @@ class OrderOne(Scene):
 
         self.remove(*equation, *new_equation, *equation[3])
         equation = MathTex("f(n + k_1)", "=", "f(n) + \\sum_{k_2=0}^{k_1-1} \\Delta f(n + k_2)").move_to(DOWN*1.5)
+        highlight(equation[0], BLUE)
         self.add(equation)
 
         new_equation = MathTex("\\sum_{k_1=1}^x", "f(n + k_1)", "=", "\\sum_{k_1=1}^x \\left(", "f(n) + \\sum_{k_2=0}^{k_1-1} \\Delta f(n + k_2)", "\\right)").move_to(DOWN*1.5)

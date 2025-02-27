@@ -105,7 +105,7 @@ class LogarithmConstant(MovingCameraScene):
 
 
         self.play(
-            axis_start.animate(run_time = 8, rate_func = sin_smooth_in(0.8)).set_value(-40),
+            axis_start.animate(run_time = 20, rate_func = sin_smooth_in(0.8)).set_value(-80),
         )
 
 

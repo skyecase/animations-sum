@@ -225,3 +225,5 @@ class OrderOne(Scene):
             text.animate.move_to(ORIGIN),
             FadeOut(VGroup(new_equation[1:], sum_copy), shift = DOWN)
         )
+
+        self.wait()

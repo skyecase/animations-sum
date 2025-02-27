@@ -2,7 +2,7 @@ from manim import VGroup, ORIGIN, Scene, Line, UP, RIGHT, DEFAULT_STROKE_WIDTH, 
 import manim
 import numpy as np
 import math
-from modules.helpers import cubic_out
+from modules.helpers import PCreate, cubic_out
 from modules.interpolation import quadratic_in, cubic_out
 
 class FullscreenAxes(VGroup):
@@ -310,4 +310,4 @@ class CheckMark(manim.VMobject):
             CUT_OFF = 0.2
             if t < CUT_OFF: return (t/CUT_OFF) * CUT_OFF
             return CUT_OFF + cubic_out((t-CUT_OFF))*(1-CUT_OFF)
-        return manim.Create(self, rate_func=thing, **kwargs)
+        return PCreate(self, rate_func=thing, **kwargs)

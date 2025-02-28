@@ -1,7 +1,7 @@
 from manim import *
 from modules.custom_mobjects import CheckMark
 from modules.helpers import fade_and_shift_in, grow_between, morph_text, align_baseline
-
+from modules.interpolation import cubic_out
 
 
 
@@ -213,3 +213,45 @@ class HighOrderDifferences(Scene):
             FadeOut(text_5[2], shift=new_text_5[2].get_center()-text_5[1].get_center() + RIGHT*0.75),
             grow_between(new_text_5[3], text_5[1], text_5[2]),
         )
+
+        self.remove(*text_0, *text_1, *text_2, *text_3, *text_4, *text_5, *new_text_0, *new_text_1, *new_text_2, *new_text_3, *new_text_4, *new_text_5)
+
+        texts = [MathTex(f"\\lim_{{x\\to\\infty}} \\Delta^{i} f(x) = 0") for i in range(6)]
+        texts[0].move_to(new_text_0); texts[1].move_to(new_text_1); texts[2].move_to(new_text_2); texts[3].move_to(new_text_3); texts[4].move_to(new_text_4); texts[5].move_to(new_text_5)
+        self.add(*texts)
+
+
+        check_0 = CheckMark(texts[0].get_left())
+        check_1 = CheckMark(texts[1].get_left())
+
+        self.play(
+            LaggedStart(
+                check_0.create_animation(),
+                check_1.create_animation(),
+                lag_ratio = 0.5
+            )
+        )
+
+
+        new_texts = [MathTex(f"\\lim_{{x\\to\\infty}} \\Delta^{i} f(x) = 0", f"\\ \\implies\\ f \\in o(x^{i})") for i in range(6)]
+        for (i, new_text) in enumerate(new_texts):
+            new_text.shift((texts[i].get_center() - new_text[0].get_center())*UP)
+            new_text[1].save_state()
+            new_text[1].set_color(BLACK).shift(RIGHT)
+        
+        shift = new_texts[0][0].get_center() - texts[0][0].get_center()
+
+        self.play(VGroup(*texts, check_0, check_1).animate.shift(shift))
+
+        self.play(new_texts[0][1].animate(rate_func=cubic_out).restore())
+        self.play(new_texts[1][1].animate(rate_func=cubic_out).restore())
+
+        self.play(
+            LaggedStart(
+                *[t[1].animate(rate_func=cubic_out).restore() for t in new_texts[2:]],
+                lag_ratio=0.2
+            )
+        )
+
+
+        self.wait()

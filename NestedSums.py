@@ -10,7 +10,7 @@ class Transformation(Scene):
 
         new_text = MathTex("S(x) = \\lim_{n\\to\\infty}\\left(", "\\sum_{k=1}^{n-1}", "(f(k) - f(x+k)) + \\sum_{k=1}^x f(n", "-1", "+k)\\right)")
 
-        self.add(text)
+        self.play(Write(text))
 
         self.play(
             LaggedStart(
@@ -89,7 +89,7 @@ class Transformation(Scene):
 class SuperRecursive2(Scene):
     def construct(self):
         text = MathTex("f(a + b) =", "f(a) + \\sum_{k=0}^{b-1} \\Delta", "f(a + k)")
-        self.play(Write(text))
+        self.play(fade_and_shift_in(text, UP))
 
         new_text = MathTex("\\Delta^0", "f(a + b) =", "\\Delta^0", "f(a) + \\sum_{k=0}^{b-1} \\Delta^", "1", "f(a + k)")
         self.play(morph_text(text, new_text, [1, 3, 5]))
@@ -115,8 +115,10 @@ class SuperRecursive2(Scene):
 
         self.play(Transform(text_2, new_text_2))
 
-        self.wait()
-
+        self.play(
+            fade_and_shift_out(text_2, DOWN),
+            fade_and_shift_out(text, UP),
+        )
 
 
 
@@ -125,7 +127,9 @@ class BigSolution(Scene):
         lim_text = MathTex("\\lim_{x \\to \\infty} \\Delta^3 f(x) = 0").scale(0.8).move_to(UP * 3)
         text = MathTex("S(x) = \\lim_{n\\to\\infty}\\left(\\sum_{k=1}^{n-1} (f(k) - f(x + k)) +", "\\sum_{k_1=0}^{x-1}", "\\Delta^0 f(n + k_1)", "\\right)")
 
-        self.add(text, lim_text)
+        self.add(text)
+
+        self.play(fade_and_shift_in(lim_text, UP))
 
         self.play(highlight_animation(text[2], BLUE))
 
@@ -135,6 +139,15 @@ class BigSolution(Scene):
         self.play(
             text.animate.shift(UP),
             FadeIn(low_text, shift=UP)
+        )
+
+        low_text[4].save_state()
+        low_text[-1].save_state()
+        self.play(highlight_animation(VGroup(low_text[4][6:8], low_text[-1][1:3]), YELLOW), run_time=0.5)
+        self.play(
+            low_text[4].animate.restore(),
+            low_text[-1].animate.restore(),
+            run_time=0.5
         )
 
         self.play(highlight_animation(VGroup(low_text[1], low_text[3], low_text[5]), YELLOW), run_time=0.5)
@@ -221,6 +234,19 @@ class BigSolution(Scene):
             text.animate.move_to(2.5*UP, UP),
             lim_text.animate.move_to(3.25*UP),
             FadeIn(low_text, shift=UP)
+        )
+
+        low_text[0].save_state()
+        self.play(highlight_animation(low_text[0][:2], YELLOW), run_time=0.5)
+        self.play(low_text[0].animate.restore(), run_time=0.5)
+
+        low_text[4].save_state()
+        low_text[-1].save_state()
+        self.play(highlight_animation(VGroup(low_text[4][6:8], low_text[-1][1:3]), YELLOW), run_time=0.5)
+        self.play(
+            low_text[4].animate.restore(),
+            low_text[-1].animate.restore(),
+            run_time=0.5
         )
 
         self.play(highlight_animation(VGroup(low_text[1], low_text[3], low_text[5]), YELLOW), run_time=0.5)

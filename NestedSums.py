@@ -468,7 +468,7 @@ class UhOh(Scene):
 
         text.save_state()
 
-        lim_text = MathTex("\\lim_{x \\to \\infty} \\Delta^", "3", "f(x) = 0").scale(0.8).move_to(UP * 3.25)
+        lim_text = MathTex("\\lim_{x \\to \\infty} \\Delta^", "3", "f(x) = 0").scale(0.8).move_to(UP * 3.1)
         self.add(lim_text)
 
         self.play(

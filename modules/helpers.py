@@ -41,15 +41,18 @@ def sigmoid(x):
 
 
 def fade_and_shift_in(mobject: manim.VMobject, shift: np.array = manim.ORIGIN, fade_rate_func = manim.linear, shift_rate_func = cubic_out, scale = 1, **kwargs):
-    start_obj = mobject.copy()
     target_pos = mobject.get_center()
-    target_opacity = 1
+
+    leaf_mobjects = get_all_mobjects(mobject)
+
+    target_fill_opacities = [mobj.get_fill_opacity() for mobj in leaf_mobjects]
+    target_stroke_opacities = [mobj.get_stroke_opacity() for mobj in leaf_mobjects]
+
     def update_func(mobject: manim.VMobject, alpha: float):
-        mobject.become(start_obj)
-        mobject.scale((1 - shift_rate_func(alpha)) * scale + shift_rate_func(alpha))
         mobject.move_to(target_pos - shift * (1 - shift_rate_func(alpha)))
-        mobject.set_opacity(target_opacity * fade_rate_func(alpha))
-        manim.ImageMobject
+        for i in range(len(leaf_mobjects)):
+            leaf_mobjects[i].set_stroke(opacity = target_stroke_opacities[i] * fade_rate_func(alpha))
+            leaf_mobjects[i].set_fill(opacity = target_fill_opacities[i] * fade_rate_func(alpha))
     return manim.UpdateFromAlphaFunc(mobject, update_func, rate_func = manim.linear, **kwargs)
 
 def fade_and_shift_out(mobject: manim.VMobject, shift: np.array = manim.ORIGIN, fade_rate_func = manim.linear, shift_rate_func = cubic_in, **kwargs):

@@ -521,7 +521,7 @@ class UhOh(Scene):
 
         self.play(text[5].animate.restore())
 
-        new_lim_text = MathTex("\\lim_{x \\to \\infty} \\Delta^", "{10}", "f(x) = 0").scale(0.8).move_to(UP * 3.25)
+        new_lim_text = MathTex("\\lim_{x \\to \\infty} \\Delta^", "{10}", "f(x) = 0").scale(0.85).move_to(UP * 3.1)
         self.play(Transform(lim_text, new_lim_text))
 
         parenthesis = text[-1]

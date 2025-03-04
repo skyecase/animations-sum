@@ -434,7 +434,7 @@ class BigSolution(Scene):
             Transform(text[0], new_text[0]),
             approach_0_group.animate(remover=True).scale(0).set_color(BLACK).set_stroke(width=0).move_to(UP * new_text.get_bottom() + DOWN*0.1 + RIGHT * approach_0_group.get_center()),
             Transform(text[-1], new_text[-1]),
-            lim_text.animate.set_color(WHITE).set_stroke(width=0)
+            lim_text.animate.set_color(WHITE).set_stroke(width=0).move_to(UP*3.1)
         )
 
         self.remove(*text, *new_text)

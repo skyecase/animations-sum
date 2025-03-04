@@ -155,7 +155,6 @@ class BinomialCoefficientDerivation(Scene):
             FadeIn(running_total_title, shift = LEFT*1.5)
         )
 
-
         iterate_state()
 
         running_total.become(MathTex(iterations, ".").scale(1.5))
@@ -273,7 +272,7 @@ class BinomialCoefficientDerivation(Scene):
         u.add_updater(pool_and_point_updater)
         u.add_updater(running_total_updater)
 
-        self.play(iterations_vt.animate.set_value(120), rate_func=sin_smooth_in_out(0.8), run_time = 10)
+        self.play(iterations_vt.animate.set_value(120), rate_func=sin_smooth_in_out(0.8), run_time = 15)
 
         self.wait()
 
@@ -342,7 +341,7 @@ class BinomialCoefficientDerivation(Scene):
 
         self.play(
             VGroup(dots, points, *labels, choice_dots).animate(remover=True).shift(DOWN*2).set_color(BLACK),
-            FadeOut(VGroup(running_total, running_total_title), shift=UP),
+            FadeOut(VGroup(running_total[0], running_total_title), shift=UP),
             LaggedStart(
                 Transform(text, new_text[:4]),
                 Write(VGroup(new_text[4], description)),

@@ -256,34 +256,26 @@ class Recursive(Scene):
 
 
 
-        s_text = MathTex("S(4)").scale(0.8).move_to(right_points[1].get_center() + UP * 0.4, DOWN)
+        s_text = MathTex("S(5)").scale(0.8).move_to(right_points[2].get_center() + UP * 0.4, DOWN)
 
         self.play(
-            right_points[1].animate.scale(1.5),
+            right_points[2].animate.scale(1.5),
             FadeIn(s_text, scale=0, shift=UP * 0.4)
         )
-
-        arrow = CustomArrow(right_points[1].get_center(), point_3.get_center(), angle=PI*3/4, text=MathTex("-\,f(4)").scale(0.7).move_to(DOWN*0.4, UP))
-        self.add(arrow)
-
-        self.play(
-            right_points[1].animate(rate_func=bounce()).scale(1/1.5),
-            arrow.animation,
-            fade_and_shift_out(s_text, UP)
-        )
-
 
 
         arrow_things = [
             CustomArrow(axes.coords_to_point(i, S(i)),
                        axes.coords_to_point(i-1, S(i-1)),
                        text=MathTex("-\,f(" + str(i) + ")").scale(0.7).move_to(DOWN*0.3 + (RIGHT if i > 0 else LEFT)*0.1,  UP))
-                for i in reversed(range(-5, 4))]
+                for i in reversed(range(-5, 6))]
         self.add(*arrow_things)
 
         self.play(
+            right_points[2].animate(rate_func=bounce()).scale(1/1.5),
+            fade_and_shift_out(s_text, UP),
             LaggedStart(
-                *[arrow_thing.animation for arrow_thing in arrow_things[:2]],
+                *[arrow_thing.animation for arrow_thing in arrow_things[:4]],
                 lag_ratio = 0.3,
             )
         )
@@ -291,11 +283,11 @@ class Recursive(Scene):
         left_points = [Dot(axes.coords_to_point(i, S(i)), 0.1, color=BLUE) for i in reversed(range(-6, 1))]
 
         self.play(
-            arrow_things[2].animation,
+            arrow_things[4].animation,
             FadeIn(left_points[0], scale = 3, rate_func=bounce())
         )
         self.play(
-            arrow_things[3].animation,
+            arrow_things[5].animation,
             FadeIn(left_points[1], scale = 3, rate_func=bounce())
         )
 
@@ -303,7 +295,7 @@ class Recursive(Scene):
             LaggedStart(
                 *[
                     AnimationGroup(
-                        arrow_things[i+2].animation,
+                        arrow_things[i+4].animation,
                         FadeIn(left_points[i], scale = 3, rate_func=bounce())
                     )
                     for i in range(2, len(left_points))
@@ -317,14 +309,6 @@ class Recursive(Scene):
         # ==============================
         # FREE POINT
         # ==============================
-
-        def S_from_starting_point(initial_x, initial_y, offset):
-            total = initial_y
-            if offset > 0:
-                for i in range(1, offset+1): total += f(initial_x + i)
-            if offset < 0:
-                for i in range(offset, 0): total -= f(initial_x + i)
-            return total
     
         def real_S(x, n=100):
             total = 0

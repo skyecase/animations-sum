@@ -306,8 +306,8 @@ class CheckMark(manim.VMobject):
 
     
     def create_animation(self, **kwargs):
-        def thing(t):
+        def rate_func(t):
             CUT_OFF = 0.2
             if t < CUT_OFF: return (t/CUT_OFF) * CUT_OFF
             return CUT_OFF + cubic_out((t-CUT_OFF))*(1-CUT_OFF)
-        return PCreate(self, rate_func=thing, **kwargs)
+        return PCreate(self, rate_func=rate_func, **kwargs)

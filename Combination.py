@@ -640,7 +640,10 @@ class OtherDefinition(Scene):
             FadeIn(bottom_text, shift=UP*3)
         )
 
-        self.wait()
+        self.play(
+            fade_and_shift_out(text, UP),
+            fade_and_shift_out(bottom_text, DOWN),
+        )
 
 
 class GeneralSolution(Scene):

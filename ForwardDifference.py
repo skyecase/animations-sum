@@ -277,6 +277,10 @@ class ForwardDifferenceIntroduction(Scene):
             VGroup(new_fd_text, fd_title).animate.move_to(ORIGIN)
         )
 
+        self.play(
+            fade_and_shift_out(VGroup(fd_title, new_fd_text), UP)
+        )
+
 
 
 class DiscreteContinuous(Scene):

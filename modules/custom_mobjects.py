@@ -213,11 +213,12 @@ class CustomArrow(manim.VMobject):
 
         self.animation = self.create_animation()
     
-    def create_animation(self, **kwargs):
+    def create_animation(self, remove=True, **kwargs):
+        arrow_animations = [self.end_vt.animate(rate_func = cubic_out).set_value(1)]
+        if remove: arrow_animations.append(self.start_vt.animate(rate_func = cubic_out).set_value(1))
         return manim.AnimationGroup(
             LaggedStart(
-                self.end_vt.animate(rate_func = cubic_out).set_value(1),
-                self.start_vt.animate(rate_func = cubic_out).set_value(1),
+                *arrow_animations,
                 lag_ratio = 0.5),
             self.text_pos_vt.animate(rate_func=manim.linear, run_time=1.5).set_value(0.5),
             LaggedStart(

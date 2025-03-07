@@ -47,5 +47,12 @@ class OtherVideos3(Scene):
         check_2 = CheckMark(text_2.get_left()).scale(0.8)
         VGroup(text_2, check_2).move_to(DOWN * 0.5)
 
-        self.play(fade_and_shift_in(VGroup(text_2, check_2, text_1, check_1, title), UP))
+        self.play(
+            LaggedStart(
+                fade_and_shift_in(VGroup(title), UP),
+                fade_and_shift_in(VGroup(text_1, check_1), UP),
+                fade_and_shift_in(VGroup(text_2, check_2), UP),
+                lag_ratio = 0.333
+            )
+        )
         self.play(fade_and_shift_out(VGroup(text_2, check_2, text_1, check_1, title), UP))

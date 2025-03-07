@@ -190,9 +190,13 @@ class ThreeSteps(Scene):
                 arrows[i].become(create_arrow(axes.coords_to_point(i+x+1, s(i+x+1)), axes.coords_to_point(i+x, s(i+x)), arrows[i].start_vt.get_value(), 1, 0.07, PI*3/4, tip_size=0.125, stroke_width=3))
         u.add_updater(updater)
 
+        s_n_arrow.add_arrow_updater()
+
         self.play(
             LaggedStart(
                 AnimationGroup(
+                    FadeOut(s_n_text, scale=0, shift=n_dot.get_center()-s_n_text.get_center() + 0.1*(UP+LEFT)),
+                    s_n_arrow.start_vt.animate.set_value(1),
                     LaggedStart(
                         *[a.start_vt.animate(rate_func=cubic_out).set_value(1) for a in reversed(arrows + [arrow])]
                     ),
@@ -205,6 +209,7 @@ class ThreeSteps(Scene):
             )
         )
 
+        s_n_arrow.remove_arrow_updater()
         u.remove_updater(updater)
 
         curve.reverse_points()
@@ -219,7 +224,6 @@ class ThreeSteps(Scene):
             VGroup(x_text, x_line).animate(rate_func=bounce()).shift((axes.coords_to_point(4, 0) - x_line.get_center()) * RIGHT),
             npx_line.animate(rate_func=bounce()).shift((axes.coords_to_point(21+4, 0) - npx_line.get_center()) * RIGHT),
             npx_text.animate(rate_func=bounce()).shift((axes.coords_to_point(21+4, 0) - npx_line.get_center())/2 * RIGHT),
-            dots[23].animate.scale(1.5)
         )
 
 
@@ -229,11 +233,18 @@ class ThreeSteps(Scene):
         text_2.save_state()
         text_3.save_state()
 
+        s_n_arrow.start_vt.set_value(0)
+        s_n_arrow.end_vt.set_value(0)
+        s_n_arrow.add_arrow_updater()
+
         self.play(
-            # text_1.animate.shift(RIGHT * (STEP_X_START - text_1.get_left())),
             text_2.animate.scale(0.8).move_to(STEP_X_START*RIGHT + DOWN*2, LEFT).set_color(GRAY),
             text_3.animate.scale(0.8).move_to(STEP_X_START*RIGHT + DOWN*3, LEFT).set_color(GRAY),
+            n_dot.animate.scale(1.5),
+            s_n_arrow.end_vt.animate.set_value(1),
+            fade_and_shift_in(s_n_text, (DOWN+RIGHT)/2, run_time=0.75)
         )
+        s_n_arrow.remove_arrow_updater()
 
         sum_1 = MathTex("\\sum_{k=1}^n f(k)").move_to(text_1.get_center()*UP + 3*RIGHT)
 
@@ -260,11 +271,11 @@ class ThreeSteps(Scene):
         sub_text = MathTex("+", "\,f(n+1)", "+", "f(n+2)", "+", "\\cdots", "+", "f(n+x)").move_to(text_2.get_center()*UP + DOWN).scale(0.8)
 
 
-        arrow_dot_animations = [a.animation for a in forward_arrows]
+        arrow_dot_animations = [a.create_animation(False) for a in forward_arrows]
         arrow_dot_animations[-1] = AnimationGroup(dots[27].animate.scale(1.5), arrow_dot_animations[-1])
 
         self.play(
-            dots[23].animate.scale(1/1.5),
+            n_dot.animate.scale(1/1.5),
             LaggedStart(
                 *arrow_dot_animations,
                 lag_ratio = 0.5,
@@ -277,7 +288,7 @@ class ThreeSteps(Scene):
             )
         )
 
-        self.remove(*forward_arrows)
+        for a in forward_arrows: a.remove_arrow_updater()
 
         self.remove(*sub_text, *sub_text[5])
         sub_text = MathTex("+ \,f(n+1) + f(n+2) + \\cdots + f(n+x)").move_to(text_2.get_center()*UP + DOWN).scale(0.8)
@@ -337,7 +348,7 @@ class ThreeSteps(Scene):
             return x*0.1 + (1-x)*0.4
 
 
-        animations = [a.create_animation() for a in reversed(backward_arrows)]
+        animations = [a.create_animation(False) for a in reversed(backward_arrows)]
         animations[-1] = AnimationGroup(
             animations[-1],
             dots[6].animate.scale(1.5)
@@ -356,8 +367,8 @@ class ThreeSteps(Scene):
                 lag_ratio = 0.7
             )
         )
-        for a in forward_arrows: a.remove_arrow_updater()
-        self.remove(*forward_arrows)
+        for a in backward_arrows: a.remove_arrow_updater()
+        # self.remove(*forward_arrows)
 
         self.remove(*sub_text, *sub_text[3])
         sub_text = MathTex("-\,f(x+n) - \\cdots - f(x+2) - f(x+1)").scale(0.8).move_to(DOWN * 3)
@@ -385,7 +396,7 @@ class ThreeSteps(Scene):
 
 
         self.play(
-            VGroup(axes, *dots, s_n_text, s_n_arrow, x_line, x_text, n_line, n_text, npx_line, npx_text).animate(rate_func = lambda x: 2*smooth(x/2)).shift(UP * 4.2),
+            VGroup(axes, *dots, s_n_text, s_n_arrow, x_line, x_text, n_line, n_text, npx_line, npx_text, *forward_arrows, *backward_arrows).animate(rate_func = lambda x: 2*smooth(x/2)).shift(UP * 4.2),
 
             text_1.animate(run_time=2).restore().move_to(UP*2 + RIGHT*(STEP_X_START - 0.5), LEFT),
             Transform(sum_1, new_sum_1, run_time=2),

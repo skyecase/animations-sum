@@ -1,7 +1,68 @@
 from manim import *
 
-from modules.helpers import create_double_arrow, fade_and_shift_in
+from modules.helpers import create_double_arrow, fade_and_shift_in, highlight_animation
 from modules.interpolation import cubic_out, cubic_in
+
+
+
+class Intro(Scene):
+    def construct(self):
+        # text_1 = MathTex("1", "+", "2", "+", "3", "+ \\cdots +", "x", "=\\quad \\frac{x(x+1)}2").move_to(UP*2)
+        # text_2 = MathTex("r^1", "+", "r^2", "+", "r^3", "+ \\cdots +", "r^x", "=\\quad r\\frac{1-r^x}{1-r}")
+        # text_3 = MathTex("f(1)", "+", "f(2)", "+", "f(3)", "+ \\cdots +", "f(x)", "=\\quad ???").move_to(DOWN*2)
+
+        # for i in range(len(text_3[:-1])):
+        #     text_1[i].move_to(text_1[i].get_center()*UP + text_3[i].get_center()*RIGHT)
+        #     text_2[i].move_to(text_2[i].get_center()*UP + text_3[i].get_center()*RIGHT)
+        # text_1[-1].move_to(text_1[-1].get_center()*UP + text_3[-1].get_left()*RIGHT, LEFT)
+        # text_2[-1].move_to(text_2[-1].get_center()*UP + text_3[-1].get_left()*RIGHT, LEFT)
+
+        # self.add(text_1)
+        # self.add(text_2)
+        # self.add(text_3)
+
+        text_1 = MathTex("\\sum_{k=1}^x k =", "1 + 2 + 3 + \\cdots + x", "=", "\\frac{x(x+1)}2")
+
+        self.play(Write(text_1[0]))
+
+        self.play(
+            LaggedStart(
+                *[fade_and_shift_in(t, LEFT) for t in text_1[1]],
+                lag_ratio=0.25
+            )
+        )
+
+        self.play(Write(text_1[2:]))
+
+        text_2 = MathTex("\\sum_{k=1}^x r^k =", "r^1", "+", "r^2", "+", "r^3", "+ \\cdots +", "r^x", "=", "r\\frac{1-r^x}{1-r}").move_to(DOWN)
+
+        self.play(
+            text_1.animate.move_to(UP),
+            FadeIn(text_2[0], shift=UP)
+        )
+
+        self.play(
+            LaggedStart(
+                *[fade_and_shift_in(t, LEFT) for t in text_2[1:6].submobjects + text_2[6].submobjects + text_2[7:8].submobjects],
+                lag_ratio=0.15
+            )
+        )
+
+        self.play(Write(text_2[-2:]))
+
+
+        text_1[-1].save_state()
+        text_2[-1].save_state()
+
+        self.play(
+            highlight_animation(text_1[-1], scale=1),
+            highlight_animation(text_2[-1], scale=1),
+            text_1[:-1].animate.set_color(GREY),
+            text_2[:-1].animate.set_color(GREY),
+        )
+
+
+
 
 
 

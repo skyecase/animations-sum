@@ -71,6 +71,16 @@ def fade_and_shift_out(mobject: manim.VMobject, shift: np.array = manim.ORIGIN, 
     return manim.UpdateFromAlphaFunc(mobject, update_func, rate_func = manim.linear, remover=True, **kwargs)
 
 
+def fade_and_shift_out_color(mobject: manim.VMobject, shift: np.array = manim.ORIGIN, fade_rate_func = manim.linear, shift_rate_func = cubic_in, **kwargs):
+    target_pos = mobject.get_center()
+    target_color = mobject.get_color()
+
+    def update_func(mobject: manim.VMobject, alpha: float):
+        mobject.move_to(target_pos + shift * shift_rate_func(alpha))
+        mobject.set_color(manim.BLACK * fade_rate_func(alpha) + target_color * (1-fade_rate_func(alpha)))
+    return manim.UpdateFromAlphaFunc(mobject, update_func, rate_func = manim.linear, remover=True, **kwargs)
+
+
 
 
 

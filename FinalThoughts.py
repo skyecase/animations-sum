@@ -2,7 +2,8 @@ import math
 from manim import *
 
 from modules.custom_mobjects import FullscreenAxes, create_axes
-from modules.helpers import fade_and_shift_in, fade_and_shift_out, grow_between, highlight_animation, morph_text
+from modules.helpers import create_updater_container, fade_and_shift_in, fade_and_shift_out, grow_between, highlight_animation, morph_text, normalize_point_speed
+from modules.interpolation import bounce, cubic_in
 
 
 class FinalThoughts(Scene):
@@ -89,11 +90,6 @@ def binomial_coefficient(n, k):
 
 
 def forward_difference(f, x, n):
-    """
-    f: function
-    x: input value
-    n: order
-    """
     total = 0
     for k in range(n + 1):
         total += (1 if k%2 == 0 else -1) * binomial_coefficient(n, k) * f(x + n - k)
@@ -123,28 +119,199 @@ def get_s(f, m, n):
 
 class Graphs(Scene):
     def construct(self):
+        u = create_updater_container(self)
 
+        scale_vt = ValueTracker(1)
+        graph_origin = Dot(LEFT*4 + DOWN*2.5, 0, 0, 0)
 
-        def f(x):
-            if (x >= 0): return math.sqrt(x) * math.sin(math.sqrt(x))
-            return -math.sqrt(-x) * math.sinh(math.sqrt(-x))
+        def make_axes():
+            return FullscreenAxes(self, graph_origin.get_center(), [scale_vt.get_value()]*2)
         
-        axes = FullscreenAxes(self, LEFT*3 + DOWN*2, [0.7, 0.7])
+        axes = make_axes()
+        u.add_updater(lambda _: axes.become(make_axes()))
 
-        def create_curve(function):
-            left = axes.point_to_coords(LEFT*7.12)[0]
-            right = axes.point_to_coords(RIGHT*7.12)[0]
-            return ParametricFunction(lambda t: axes.coords_to_point(t, function(t)), [left, right])
+        def create_f_curve(function, left = None, right = None):
+            if left is None: left = axes.point_to_coords(LEFT*7.12)[0]
+            if right is None: right = axes.point_to_coords(RIGHT*7.12)[0]
+            return ParametricFunction(lambda t: axes.coords_to_point(t, function(t)), [left, right], color=RED)
+        
+        def create_s_curve(function, left = None, right = None):
+            if left is None: left = axes.point_to_coords(LEFT*7.12)[0]
+            if right is None: right = axes.point_to_coords(RIGHT*7.12)[0]
+            return ParametricFunction(lambda t: axes.coords_to_point(t, function(t)), [left, right], color=YELLOW)
+
+        def create_dots(function, num):
+            dots = []
+            total = 0
+            for i in range(1, num):
+                total += function(i)
+                dot = Dot(axes.coords_to_point(i, total), 0.12 * scale_vt.get_value(), color=BLUE)
+                dot.set_z_index(1)
+                dots.append(dot)
+            return dots
 
 
-        curve = create_curve(f)
 
         self.play(
             create_axes(self, axes)
         )
 
-        self.play(Create(curve))
+        
 
-        curve_2 = create_curve(get_s(f, 4, 100))
+        def f(x): return math.sqrt(x)
 
-        self.play(Create(curve_2))
+        text = MathTex("f(x) =", "\\sqrt x").move_to(RIGHT*3 + UP)
+        dots = create_dots(f, 5)
+        curve_f = create_f_curve(f, 0)
+        curve_s = create_s_curve(get_s(f, 4, 100), -1, 4.5)
+
+        self.play(
+            Create(curve_f),
+            Write(text),
+            LaggedStart(
+                *[FadeIn(dot, scale=3, rate_func=bounce()) for dot in dots],
+                lag_ratio= 0.1
+            )
+        )
+        self.play(Create(curve_s))
+
+
+        new_text = MathTex("f(x) =", "\\frac1x").move_to(RIGHT*4)
+
+        curve_f.reverse_direction()
+        curve_s.reverse_direction()
+        self.play(
+            LaggedStart(
+                AnimationGroup(
+                    Uncreate(curve_f),
+                    Uncreate(curve_s),
+                    LaggedStart(
+                        *[FadeOut(dot, scale=0, rate_func=cubic_in, run_time=0.5) for dot in dots],
+                        lag_ratio = 0.2
+                    ),
+                    LaggedStart(
+                        *[fade_and_shift_out(letter, RIGHT*0.5, run_time=0.5) for letter in reversed(text[1])]
+                    )
+                ),
+                AnimationGroup(
+                    graph_origin.animate.move_to(LEFT*2 + DOWN),
+                    text[0].animate.move_to(new_text[0]),
+                ),
+                lag_ratio=0.5
+            )
+        )
+
+        # ===========================================================
+        
+
+        def f(x): return 1/x if x != 0 else 0
+        s = get_s(f, 4, 100)
+        def s_adjusted(x): return min(5.5, max(-3.5, s(x)))
+        dots = create_dots(f, 10)
+        curve_f = VGroup(create_f_curve(f, right=-0.01), create_f_curve(f, 0.01))
+        curve_s = VGroup(
+            *[create_s_curve(s_adjusted, i+0.001, i+0.999) for i in range(-5, -1)],
+            create_s_curve(s_adjusted, -1 + 0.01)
+        )
+        for curve in curve_s:
+            curve.set_points(normalize_point_speed(curve.points))
+
+        self.play(
+            Create(curve_f),
+            Write(new_text[1]),
+            LaggedStart(
+                *[FadeIn(dot, scale=3, rate_func=bounce()) for dot in dots],
+                lag_ratio= 0.1
+            )
+        )
+        self.play(
+            LaggedStart(
+                *[Create(curve) for curve in curve_s],
+                lag_ratio = 0.1
+            )
+        )
+
+
+        for curve in curve_f.submobjects + curve_s.submobjects:
+            curve.reverse_direction()
+        
+        left_text = new_text[1]
+        new_text = MathTex("f(x) =", "\\ln(|x|)").move_to(RIGHT*4.5 + DOWN*0.25)
+        self.play(
+            LaggedStart(
+                AnimationGroup(
+                    Uncreate(curve_f),
+                    LaggedStart(
+                        *[Uncreate(curve) for curve in curve_s],
+                        lag_ratio = 0.1
+                    ),
+                    LaggedStart(
+                        *[FadeOut(dot, scale=0, rate_func=cubic_in, run_time=0.5) for dot in dots],
+                        lag_ratio = 0.2
+                    ),
+                    LaggedStart(
+                        *[fade_and_shift_out(letter, RIGHT*0.5, run_time=0.5) for letter in reversed(left_text)]
+                    )
+                ),
+                AnimationGroup(
+                    graph_origin.animate.move_to(LEFT + DOWN),
+                    text[0].animate.move_to(new_text[0]),
+                ),
+                lag_ratio = 0.5
+            )
+        )
+
+
+        # ===========================================================
+
+        def f(x): return math.log(abs(x)) if x != 0 else 0
+        s = get_s(f, 4, 100)
+        def s_adjusted(x): return min(5.5, max(-3.5, s(x)))
+        dots = create_dots(f, 6)
+        curve_f = VGroup(create_f_curve(f, right=-0.01), create_f_curve(f, 0.01))
+        curve_s = VGroup(
+            *[create_s_curve(s_adjusted, i+0.00001, i+0.99999) for i in range(-7, -1)],
+            create_s_curve(s_adjusted, -1 + 0.001)
+        )
+        for curve in curve_s:
+            curve.set_points(normalize_point_speed(curve.points, 0.01))
+
+        self.play(
+            Create(curve_f),
+            Write(new_text[1]),
+            LaggedStart(
+                *[FadeIn(dot, scale=3, rate_func=bounce()) for dot in dots],
+                lag_ratio= 0.1
+            )
+        )
+        self.play(
+            LaggedStart(
+                *[Create(curve) for curve in curve_s],
+                lag_ratio = 0.1
+            )
+        )
+
+
+        for curve in curve_f.submobjects + curve_s.submobjects:
+            curve.reverse_direction()
+        self.play(
+            Uncreate(curve_f),
+            LaggedStart(
+                *[Uncreate(curve) for curve in curve_s],
+                lag_ratio = 0.1
+            ),
+            LaggedStart(
+                *[FadeOut(dot, scale=0, rate_func=cubic_in, run_time=0.5) for dot in dots],
+                lag_ratio = 0.2
+            ),
+            LaggedStart(
+                *[fade_and_shift_out(letter, RIGHT*0.5, run_time=0.5) for letter in reversed(text[1])]
+            )
+        )
+
+
+        # ===========================================================
+
+        def f(x):
+            if (x >= 0): return math.sqrt(x) * math.sin(math.sqrt(x))
+            return -math.sqrt(-x) * math.sinh(math.sqrt(-x))

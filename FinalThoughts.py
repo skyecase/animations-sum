@@ -161,10 +161,10 @@ class Graphs(Scene):
             if right is None: right = axes.point_to_coords(RIGHT*7.12)[0]
             return ParametricFunction(lambda t: axes.coords_to_point(t, function(t)), [left, right], color=RED)
         
-        def create_s_curve(function, left = None, right = None):
+        def create_s_curve(function, left = None, right = None, t_step = 0.01):
             if left is None: left = axes.point_to_coords(LEFT*7.12)[0]
             if right is None: right = axes.point_to_coords(RIGHT*7.12)[0]
-            return ParametricFunction(lambda t: axes.coords_to_point(t, function(t)), [left, right], color=YELLOW)
+            return ParametricFunction(lambda t: axes.coords_to_point(t, function(t)), [left, right, t_step], color=YELLOW)
 
         def create_dots(function, num):
             dots = []
@@ -449,19 +449,19 @@ class Graphs(Scene):
                 ),
                 AnimationGroup(
                     graph_origin.animate.move_to(LEFT*2 + DOWN*2.5),
-                    scale_vt.animate.set_value(0.8),
+                    scale_vt.animate.set_value(0.7),
                     text[0].animate.move_to(new_text[0]),
                 ),
-                lag_ratio = 0.5
+                lag_ratio = 0.7
             )
         )
 
         # ===========================
 
-        def f(x): return 0 if x == 0 or x == -1 else zeta(x + 1, 50)
+        def f(x): return 0 if x == 0 or x == -1 else zeta(x + 1, 25)
 
-        s = get_s(f, 4, 50)
-        def s_adjusted(x): return min(8.5, max(-2, s(x)))
+        s = get_s(f, 4, 25)
+        def s_adjusted(x): return min(9.5, max(-2.5, s(x)))
         dots = create_dots(f, 9)
         curve_f = VGroup(create_f_curve(f, right=-0.01), create_f_curve(f, 0.01))
         curve_s = VGroup(
@@ -503,6 +503,38 @@ class Graphs(Scene):
             LaggedStart(
                 *[FadeOut(dot, scale=0, rate_func=cubic_in, run_time=0.5) for dot in dots],
                 lag_ratio = 0.2
+            )
+        )
+
+
+
+
+        f = s
+        dots = create_dots(f, 4)
+        self.play(
+            LaggedStart(
+                *[FadeIn(dot, scale=3, rate_func=bounce()) for dot in dots],
+                lag_ratio= 0.1
+            )
+        )
+
+        # Insanely inefficient, but it does the job
+        s = get_s(f, 4, 25)
+        def s_adjusted(x):
+            print(x)
+            return min(9.5, max(-2.5, s(x)))
+        curve_s = VGroup(
+            *[create_s_curve(s_adjusted, i+0.001, i+0.999, 0.05) for i in range(-7, -2)],
+            create_s_curve(s_adjusted, -2 + 0.01, 3.5, 0.05)
+        )
+
+        for curve in curve_s:
+            curve.set_points(normalize_point_speed(curve.points))
+
+        self.play(
+            LaggedStart(
+                *[Create(curve) for curve in curve_s],
+                lag_ratio = 0.1
             )
         )
 

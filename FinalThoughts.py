@@ -116,6 +116,32 @@ def get_s(f, m, n):
     return s
 
 
+# Gauss Pi function (the Gamma function if it was good)
+def pi(x, n = 100):
+    total = 1
+    for i in range(1, n-1):
+        total *= i/(x + i)
+    total *= n**x
+    total *= ((n+1)/n)**(x*(x-1)/2)
+    return total
+
+# Zeta function for values > -2. Computed by eta function + 2 iterations of Euler summation
+def zeta_positive(x, n = 100):
+    total = 0
+    sign = 1
+    for i in range(1, n):
+        total += sign / (i**x)
+        sign *= -1
+    total += 0.75 * sign / ((n+1)**x)
+    total -= 0.25 * sign / ((n+2)**x)
+    return total / (1 - 2**(1-x))
+
+def zeta(x, n = 100):
+    if x > 0: return zeta_positive(x, n)
+    return zeta_positive(1 - x, n) * 2*pi(-x, n)/(TAU**(1-x)) * math.sin(PI * x/2)
+
+
+
 
 class Graphs(Scene):
     def construct(self):
@@ -403,15 +429,92 @@ class Graphs(Scene):
         curve_f.reverse_direction()
         curve_s.reverse_direction()
         
+        left_text = new_text[1]
+        new_text = MathTex("f(x) =", "\\zeta(x + 1)").move_to(RIGHT*4 + DOWN*0.5)
+        self.play(
+            LaggedStart(
+                AnimationGroup(
+                    LaggedStart(
+                        Uncreate(curve_f, rate_func=linear),
+                        Uncreate(curve_s, rate_func=linear),
+                        lag_ratio = 0.25
+                    ),
+                    LaggedStart(
+                        *[FadeOut(dot, scale=0, rate_func=cubic_in, run_time=0.5) for dot in dots],
+                        lag_ratio = 0.075
+                    ),
+                    LaggedStart(
+                        *[fade_and_shift_out(letter, RIGHT*0.5, run_time=0.5) for letter in reversed(left_text)]
+                    )
+                ),
+                AnimationGroup(
+                    graph_origin.animate.move_to(LEFT*2 + DOWN*2.5),
+                    scale_vt.animate.set_value(0.8),
+                    text[0].animate.move_to(new_text[0]),
+                ),
+                lag_ratio = 0.5
+            )
+        )
+
+        # ===========================
+
+        def f(x): return 0 if x == 0 or x == -1 else zeta(x + 1, 50)
+
+        s = get_s(f, 4, 50)
+        def s_adjusted(x): return min(8.5, max(-2, s(x)))
+        dots = create_dots(f, 9)
+        curve_f = VGroup(create_f_curve(f, right=-0.01), create_f_curve(f, 0.01))
+        curve_s = VGroup(
+            *[create_s_curve(s_adjusted, i+0.001, i+0.999) for i in range(-7, -1)],
+            create_s_curve(s_adjusted, -1 + 0.01, 8.5)
+        )
+        for curve in curve_s:
+            curve.set_points(normalize_point_speed(curve.points))
+
+        self.play(
+            Create(curve_f),
+            Write(new_text[1]),
+            LaggedStart(
+                *[FadeIn(dot, scale=3, rate_func=bounce()) for dot in dots],
+                lag_ratio= 0.1
+            )
+        )
+        self.play(
+            LaggedStart(
+                *[Create(curve) for curve in curve_s],
+                lag_ratio = 0.1
+            )
+        )
+
+
+        self.remove(*text, *new_text)
+        text = new_text
+        self.add(text)
+
+        new_text = MathTex("f(x) =", "\\sum_{k=1}^x", "\\zeta(k + 1)").move_to(text)
+
+        for curve in curve_f.submobjects:
+            curve.reverse_direction()
+        
+        self.play(
+            Uncreate(curve_f),
+            morph_text(text, new_text, [0, 2]),
+            curve_s.animate.set_color(RED),
+            LaggedStart(
+                *[FadeOut(dot, scale=0, rate_func=cubic_in, run_time=0.5) for dot in dots],
+                lag_ratio = 0.2
+            )
+        )
+
         # left_text = new_text[1]
-        # new_text = MathTex("f(x) =", "\\sqrt x \\sin(\\sqrt x)").move_to(RIGHT*4.5 + UP)
+        # new_text = MathTex("f(x) =", "\\ln(|x|)").move_to(RIGHT*4.5 + DOWN*0.25)
         # self.play(
         #     LaggedStart(
         #         AnimationGroup(
+        #             Uncreate(curve_f),
         #             LaggedStart(
-        #                 Uncreate(curve_f, rate_func=linear),
-        #                 Uncreate(curve_s, rate_func=linear),
-        #                 lag_ratio = 0.25
+        #                 *[Uncreate(curve) for curve in curve_s],
+        #                 lag_ratio = 0.1
         #             ),
         #             LaggedStart(
         #                 *[FadeOut(dot, scale=0, rate_func=cubic_in, run_time=0.5) for dot in dots],
@@ -422,8 +525,7 @@ class Graphs(Scene):
         #             )
         #         ),
         #         AnimationGroup(
-        #             graph_origin.animate.move_to(LEFT*3 + DOWN),
-        #             scale_vt.animate.set_value(0.5),
+        #             graph_origin.animate.move_to(LEFT + DOWN),
         #             text[0].animate.move_to(new_text[0]),
         #         ),
         #         lag_ratio = 0.5

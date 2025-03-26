@@ -154,7 +154,6 @@ class Graphs(Scene):
             return FullscreenAxes(self, graph_origin.get_center(), [scale_vt.get_value()]*2, 0.25 * math.sqrt(scale_vt.get_value()))
         
         axes = make_axes()
-        u.add_updater(lambda _: axes.become(make_axes()))
 
         def create_f_curve(function, left = None, right = None):
             if left is None: left = axes.point_to_coords(LEFT*7.12)[0]
@@ -183,6 +182,8 @@ class Graphs(Scene):
         )
         self.remove(axes)
         self.add(axes)
+
+        u.add_updater(lambda _: axes.become(make_axes()))
 
         
 
@@ -522,14 +523,15 @@ class Graphs(Scene):
         s = get_s(f, 4, 25)
         def s_adjusted(x):
             print(x)
-            return min(9.5, max(-2.5, s(x)))
+            return min(10, max(-2.5, s(x)))
+        curve_f = curve_s
         curve_s = VGroup(
-            *[create_s_curve(s_adjusted, i+0.001, i+0.999, 0.05) for i in range(-7, -2)],
+            *[create_s_curve(s_adjusted, i+0.001, i+0.999, 0.025) for i in range(-7, -2)],
             create_s_curve(s_adjusted, -2 + 0.01, 3.5, 0.05)
         )
 
         for curve in curve_s:
-            curve.set_points(normalize_point_speed(curve.points))
+            curve.set_points(normalize_point_speed(curve.points, 0.05))
 
         self.play(
             LaggedStart(
@@ -538,28 +540,31 @@ class Graphs(Scene):
             )
         )
 
-        # left_text = new_text[1]
-        # new_text = MathTex("f(x) =", "\\ln(|x|)").move_to(RIGHT*4.5 + DOWN*0.25)
+
+        # self.remove(*text, new_text)
+        # self.add(new_text)
+
+        # for curve in curve_s + curve_f:
+        #     curve.reverse_direction()
+        # new_text.submobjects.reverse()
+        # for t in new_text.submobjects:
+        #     t.submobjects.reverse()
+        #     for tt in t.submobjects:
+        #         t.reverse_direction()
+
+
         # self.play(
         #     LaggedStart(
-        #         AnimationGroup(
-        #             Uncreate(curve_f),
-        #             LaggedStart(
-        #                 *[Uncreate(curve) for curve in curve_s],
-        #                 lag_ratio = 0.1
-        #             ),
-        #             LaggedStart(
-        #                 *[FadeOut(dot, scale=0, rate_func=cubic_in, run_time=0.5) for dot in dots],
-        #                 lag_ratio = 0.2
-        #             ),
-        #             LaggedStart(
-        #                 *[fade_and_shift_out(letter, RIGHT*0.5, run_time=0.5) for letter in reversed(left_text)]
-        #             )
-        #         ),
-        #         AnimationGroup(
-        #             graph_origin.animate.move_to(LEFT + DOWN),
-        #             text[0].animate.move_to(new_text[0]),
-        #         ),
-        #         lag_ratio = 0.5
-        #     )
+        #         *[Uncreate(curve) for curve in curve_f],
+        #         lag_ratio = 0.1
+        #     ),
+        #     LaggedStart(
+        #         *[Uncreate(curve) for curve in curve_s],
+        #         lag_ratio = 0.1
+        #     ),
+        #     LaggedStart(
+        #         *[FadeOut(dot, scale=0) for dot in dots],
+        #         lag_ratio=0.2
+        #     ),
+        #     Unwrite(new_text, run_time = 1.5)
         # )

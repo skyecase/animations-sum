@@ -1,6 +1,6 @@
 from manim import *
 
-from modules.helpers import fade_and_shift_out_color
+from modules.helpers import fade_and_shift_in, fade_and_shift_out_color, highlight_animation, morph_text, rotate_points
 
 
 # Adds the arrow on a sigma
@@ -65,3 +65,62 @@ class Formulas(Scene):
                 lag_ratio=0.1
             )
         )
+
+        text = MathTex("S(x) = \\lim_{n \\to \\infty}\\left(\\sum_{k=1}^n (f(k) - f(x+k)) + \\sum_{k=1}^x f(n+k)\\right)")
+        self.play(fade_and_shift_in(text, UP))
+
+
+        forward_difference = MathTex("\\Delta^n f(k)").move_to(DOWN * 1.5 + LEFT*3).set_color(RED)
+
+        self.play(
+            FadeIn(forward_difference, shift=UP*1.5),
+            text.animate.shift(UP)
+        )
+
+        bcoef = MathTex("\\binom nk").move_to(DOWN*1.5 + RIGHT*3).set_color(RED)
+        self.play(FadeIn(bcoef, shift=UP))
+
+
+        polynomials = Tex("Polynomials").scale(1.25)
+
+        self.play(
+            FadeOut(text, shift=UP),
+            FadeOut(VGroup(forward_difference, bcoef), shift=DOWN),
+            FadeIn(polynomials, scale=0)
+        )
+
+
+class Polynomials(Scene):
+    def construct(self):
+        
+        title = Tex("Polynomials").scale(1.25)
+
+        text = MathTex("x^3 - 3x^2 - 2x + 4")
+
+        self.play(
+            FadeIn(text, shift=UP),
+            title.animate.shift(UP*2.5)
+        )
+
+        new_text = MathTex("\\sum_{k=1}^x (", "k^3 - 3k^2 - 2k + 4", ")")
+        for letter in [new_text[1][0], new_text[1][4], new_text[1][8]]:
+            rotate_points(letter, 72+36-16)
+            # letter.reverse_points()
+        self.play(morph_text(text, new_text, [1]))
+
+        self.remove(*text, *new_text)
+        text = MathTex("\\sum_{k=1}^x (k^3 - 3k^2 - 2k + 4)")
+        new_text = MathTex("\\sum_{k=1}^x (k^3 - 3k^2 - 2k + 4)", "= \\frac14x^4-\\frac12x^3-\\frac94x^2+\\frac52x")
+        self.add(text)
+
+        self.play(
+            Transform(text[0], new_text[0]),
+            FadeIn(new_text[1], shift = LEFT*4)
+        )
+
+        self.remove(*text, *new_text)
+        text = MathTex("\\sum_{k=1}^x (k^", "3", "- 3k^2 - 2k + 4) = \\frac14x^", "4", "-\\frac12x^3-\\frac94x^2+\\frac52x")
+        self.add(text)
+        self.play(highlight_animation(VGroup(text[1], text[3]), BLUE))
+
+        self.play(fade_and_shift_out_color(text, UP))

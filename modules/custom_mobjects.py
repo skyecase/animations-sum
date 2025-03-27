@@ -14,10 +14,16 @@ class FullscreenAxes(VGroup):
         tick_length: float = 0.25,
         tick_spacing: list[float] = [1, 1],
         stroke_width: float = DEFAULT_STROKE_WIDTH,
+        major_tick_every: list[int] = [None, None],
+        major_tick_scale: list[int] = [2, 2],
         rect: manim.Rectangle = None,
         **kwargs,
     ):
         VGroup.__init__(self, **kwargs)
+
+        self.a_origin = origin
+        self.a_scale = scale
+
         top = rect.get_top()[1] if rect != None else (scene.camera.frame_center + scene.camera.frame_height / 2)[1]
         bottom = rect.get_bottom()[1] if rect != None else top - scene.camera.frame_height
         right = rect.get_right()[0] if rect != None else (scene.camera.frame_center + scene.camera.frame_width / 2)[0]
@@ -29,21 +35,29 @@ class FullscreenAxes(VGroup):
         # X axis tick marks
         x_ticks = []
         x = origin[0] + math.ceil((left - stroke_width / 100 / 2 - origin[0]) / tick_spacing[0] / scale[0]) * tick_spacing[0] * scale[0]
-        tick_bottom = min(top - tick_length, max(bottom, (origin[1] - tick_length / 2)))
-        tick_top  = min(top, max(bottom + tick_length, (origin[1] + tick_length / 2)))
         while x <= right + stroke_width / 100 / 2:
             if abs(x - origin[0]) > scale[0] * tick_spacing[0] / 2:
-                x_ticks += Line(x * RIGHT + tick_bottom * UP, x * RIGHT + tick_top * UP, stroke_width = stroke_width, **kwargs)
+                x_ticks += Line(ORIGIN, UP*tick_length, stroke_width = stroke_width, **kwargs).move_to(UP*origin[1] + RIGHT*x)
+                if major_tick_every[0] is not None:
+                    tick_number = round(self.point_to_coords(RIGHT*x)[0] / tick_spacing[0])
+                    if tick_number % major_tick_every[0] == 0:
+                        x_ticks[-1].scale(major_tick_scale[0])
+                if (x_ticks[-1].get_bottom()[1] < bottom): x_ticks[-1].shift(UP * (bottom - x_ticks[-1].get_bottom()[1]))
+                if (x_ticks[-1].get_top()[1] > top): x_ticks[-1].shift(UP * (top - x_ticks[-1].get_top()[1]))
             x += tick_spacing[0] * scale[0]
 
         # Y axis tick marks
         y_ticks = []
         y = origin[1] + math.ceil((bottom - stroke_width / 100 / 2 - origin[1]) / tick_spacing[1] / scale[1]) * tick_spacing[1] * scale[1]
-        tick_bottom = min(right - tick_length, max(left, (origin[0] - tick_length / 2)))
-        tick_top  = min(right, max(left + tick_length, (origin[0] + tick_length / 2)))
         while y <= top + stroke_width / 100 / 2:
             if abs(y - origin[1]) > scale[1] * tick_spacing[1] / 2:
-                y_ticks += Line(y * UP + tick_bottom * RIGHT, y * UP + tick_top * RIGHT, stroke_width = stroke_width, **kwargs)
+                y_ticks += Line(ORIGIN, RIGHT*tick_length, stroke_width = stroke_width, **kwargs).move_to(RIGHT*origin[0] + UP*y)
+                if major_tick_every[1] is not None:
+                    tick_number = round(self.point_to_coords(UP*y)[1] / tick_spacing[1])
+                    if tick_number % major_tick_every[1] == 0:
+                        y_ticks[-1].scale(major_tick_scale[1])
+                if (y_ticks[-1].get_left()[0] < left): y_ticks[-1].shift(RIGHT * (left - y_ticks[-1].get_left()[0]))
+                if (y_ticks[-1].get_right()[0] > right): y_ticks[-1].shift(RIGHT * (right - y_ticks[-1].get_right()[0]))
             y += tick_spacing[1] * scale[1]
         
 
@@ -54,9 +68,6 @@ class FullscreenAxes(VGroup):
 
         self.add(VGroup(x_line, *x_ticks))
         self.add(VGroup(y_line, *y_ticks))
-
-        self.a_origin = origin
-        self.a_scale = scale
 
 
     def coords_to_point(self, x: float, y: float):

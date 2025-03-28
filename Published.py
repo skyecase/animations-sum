@@ -3,7 +3,7 @@ from manim import *
 
 from modules.custom_mobjects import DottedLine, FullscreenAxes, create_axes
 from modules.helpers import create_updater_container, fade_and_shift_in, fade_and_shift_out, fade_and_shift_out_color, highlight_animation, morph_text, rotate_points
-from modules.interpolation import cubic_out, sin_smooth_in_out
+from modules.interpolation import cubic_out, cubic_in, sin_smooth_in, sin_smooth_in_out
 
 
 # Adds the arrow on a sigma
@@ -187,35 +187,62 @@ class Constant(Scene):
         self.play(axis_space_center_vt.animate.set_value(27), run_time=3, rate_func=sin_smooth_in_out(0.1))
 
         u.remove_updater_index(-1)
-
+        line.save_state()
 
         dot_1 = Dot(axes.coords_to_point(math.e**PI, PI), 0.1, color=YELLOW)
         dot_1.save_state(); dot_1.scale(0)
-        # dotted_line_1 = DottedLine(dot_1.get_center(), axes.coords_to_point(math.e**PI, 0), color=BLUE)
-        # dotted_line_1.set_z_index(-1)
 
         line_2 = Line(axes.coords_to_point(31 - 3, math.log(31)), axes.coords_to_point(31 + 3, math.log(31)), color=BLUE)
         line_2.save_state(); line_2.scale(0)
         dot_2 = Dot(axes.coords_to_point(31, math.log(31)), 0.1, color=YELLOW)
         dot_2.save_state(); dot_2.scale(0)
-        # dotted_line_2 = DottedLine(dot_2.get_center(), axes.coords_to_point(math.e**PI, 0), color=GREEN)
-        # dotted_line_2.set_z_index(-1)
 
         self.play(
             LaggedStart(
                 AnimationGroup(
                     Transform(line, Line(axes.coords_to_point(math.e**PI - 3, PI), axes.coords_to_point(math.e**PI + 3, PI), color=BLUE), rate_func=cubic_out),
                     dot_1.animate(rate_func=cubic_out).restore(),
-                    # FadeIn(dot_1, scale=0, rate_func=cubic_out),
-                    # Create(dotted_line_1),
                 ),
                 AnimationGroup(
                     line_2.animate(rate_func=cubic_out).restore(),
                     dot_2.animate(rate_func=cubic_out).restore(),
-                    # FadeIn(dot_2, scale=0, rate_func=cubic_out),
-                    # Create(dotted_line_2),
                 ),
                 lag_ratio = 0.5,
                 run_time = 1
             )
+        )
+
+        self.play(
+            LaggedStart(
+                AnimationGroup(
+                    line_2.animate(rate_func=cubic_in).scale(0),
+                    dot_2.animate(rate_func=cubic_in).scale(0),
+                ),
+                AnimationGroup(
+                    line.animate(rate_func=cubic_in).restore(),
+                    dot_1.animate.scale(1) # noop to prevent z order from getting messed up (no clue why that happens)
+                ),
+                lag_ratio = 0.5,
+                run_time = 1
+            )
+        )
+
+
+
+        point_x_vt = ValueTracker(math.e**PI)
+        def line_and_dot_updater(_):
+            line.move_to(UP*axes.coords_to_point(0, math.log(point_x_vt.get_value())))
+            dot_1.move_to(axes.coords_to_point(point_x_vt.get_value(), math.log(point_x_vt.get_value())))
+        u.add_updater(line_and_dot_updater)
+
+        self.play(point_x_vt.animate.set_value(34), rate_func=sin_smooth_in_out())
+        self.play(point_x_vt.animate.set_value(20), rate_func=sin_smooth_in_out())
+        self.play(point_x_vt.animate.set_value(axis_space_center_vt.get_value()), rate_func=sin_smooth_in_out())
+
+
+        self.play(
+            axis_space_center_vt.animate.set_value(300),
+            point_x_vt.animate.set_value(300),
+            rate_func=sin_smooth_in(0.5),
+            run_time=15
         )

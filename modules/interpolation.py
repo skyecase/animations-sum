@@ -49,7 +49,7 @@ def bounce_from_bottom(restitution = 1/9):
 
 def sin_smooth_in(linearity = 0):
     if linearity == 0:
-        return lambda x: (1 - np.cos(np.pi * x)) / 2
+        return lambda x: (1 - np.cos(np.pi/2 * x))
     a = np.sqrt(linearity * (2 - linearity))
     return lambda x: 1 - np.arcsin(a * np.cos(np.pi/2 * x)) / np.arcsin(a)
 

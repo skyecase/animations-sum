@@ -1,6 +1,8 @@
+import math
 from manim import *
 
-from modules.helpers import fade_and_shift_in, fade_and_shift_out_color, highlight_animation, morph_text, rotate_points
+from modules.custom_mobjects import FullscreenAxes
+from modules.helpers import create_updater_container, fade_and_shift_in, fade_and_shift_out, fade_and_shift_out_color, highlight_animation, morph_text, rotate_points
 
 
 # Adds the arrow on a sigma
@@ -124,3 +126,37 @@ class Polynomials(Scene):
         self.play(highlight_animation(VGroup(text[1], text[3]), BLUE))
 
         self.play(fade_and_shift_out_color(text, UP))
+
+
+        f_text = Tex("If $f(x)$", " behaves like a polynomial ", "as $x \\to \\infty$,").move_to(UP*0.5)
+        s_text = Tex("then $S(x)$", " behaves like a polynomial ", "as $x \\to \\infty$.").move_to(DOWN)
+
+        self.play(fade_and_shift_in(f_text, UP))
+        self.play(fade_and_shift_in(s_text, UP))
+
+        self.play(
+            VGroup(f_text[1], s_text[1]).animate.set_color(RED)
+        )
+
+        self.play(
+            fade_and_shift_out(title, UP),
+            fade_and_shift_out(VGroup(f_text, s_text), DOWN)
+        )
+
+
+
+class Constant(Scene):
+    def construct(self):
+        u = create_updater_container(self)
+
+        AXIS_SCALE = 0.8
+        axis_space_center_vt = ValueTracker(5) # X coordinate in the axes that is at the screen origin
+
+        def make_axes():
+            center_x = axis_space_center_vt.get_value()
+            return FullscreenAxes(self, LEFT*AXIS_SCALE*center_x + DOWN*AXIS_SCALE*math.log(center_x), [0.8, 0.8], major_tick_every=[10, None])
+        
+        axes = make_axes()
+        self.add(axes)
+        u.add_updater(lambda _: axes.become(make_axes()))
+

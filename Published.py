@@ -189,8 +189,8 @@ class Constant(Scene):
         u.remove_updater_index(-1)
         line.save_state()
 
-        dot_1 = Dot(axes.coords_to_point(math.e**PI, PI), 0.1, color=YELLOW)
-        dot_1.save_state(); dot_1.scale(0)
+        dot = Dot(axes.coords_to_point(math.e**PI, PI), 0.1, color=YELLOW)
+        dot.save_state(); dot.scale(0)
 
         line_2 = Line(axes.coords_to_point(31 - 3, math.log(31)), axes.coords_to_point(31 + 3, math.log(31)), color=BLUE)
         line_2.save_state(); line_2.scale(0)
@@ -201,7 +201,7 @@ class Constant(Scene):
             LaggedStart(
                 AnimationGroup(
                     Transform(line, Line(axes.coords_to_point(math.e**PI - 3, PI), axes.coords_to_point(math.e**PI + 3, PI), color=BLUE), rate_func=cubic_out),
-                    dot_1.animate(rate_func=cubic_out).restore(),
+                    dot.animate(rate_func=cubic_out).restore(),
                 ),
                 AnimationGroup(
                     line_2.animate(rate_func=cubic_out).restore(),
@@ -220,7 +220,7 @@ class Constant(Scene):
                 ),
                 AnimationGroup(
                     line.animate(rate_func=cubic_in).restore(),
-                    dot_1.animate.scale(1) # noop to prevent z order from getting messed up (no clue why that happens)
+                    dot.animate.scale(1) # noop to prevent z order from getting messed up (no clue why that happens)
                 ),
                 lag_ratio = 0.5,
                 run_time = 1
@@ -232,17 +232,76 @@ class Constant(Scene):
         point_x_vt = ValueTracker(math.e**PI)
         def line_and_dot_updater(_):
             line.move_to(UP*axes.coords_to_point(0, math.log(point_x_vt.get_value())))
-            dot_1.move_to(axes.coords_to_point(point_x_vt.get_value(), math.log(point_x_vt.get_value())))
+            dot.move_to(axes.coords_to_point(point_x_vt.get_value(), math.log(point_x_vt.get_value())))
         u.add_updater(line_and_dot_updater)
 
         self.play(point_x_vt.animate.set_value(34), rate_func=sin_smooth_in_out())
         self.play(point_x_vt.animate.set_value(20), rate_func=sin_smooth_in_out())
         self.play(point_x_vt.animate.set_value(axis_space_center_vt.get_value()), rate_func=sin_smooth_in_out())
 
+        u.remove_updater(line_and_dot_updater)
 
         self.play(
             axis_space_center_vt.animate.set_value(300),
             point_x_vt.animate.set_value(300),
             rate_func=sin_smooth_in(0.5),
             run_time=15
+        )
+
+
+        #=========================#
+        # Done going to the right #
+        #=========================#
+
+        axis_space_center_vt.set_value(5)
+        axes.become(make_axes()) # Force update
+        self.remove(line)
+        self.remove(dot)
+
+        dotted_line = DottedLine(axes.coords_to_point(5, 0) + DOWN*0.4, axes.coords_to_point(5, math.log(5))).set_color(YELLOW)
+        dot.set_z_index(1)
+        n_text = MathTex("n").move_to(axes.coords_to_point(5, 0) + DOWN*0.55, UP).set_color(YELLOW)
+
+        self.play(
+            Create(dotted_line, rate_func=cubic_out),
+            FadeIn(dot, scale=0, rate_func=cubic_out),
+            fade_and_shift_in(n_text, UP*0.5)
+        )
+
+
+        c_text = MathTex("c_n").move_to(axes.coords_to_point(5, math.log(5)) + UP*0.25 + LEFT*1.5, DOWN+RIGHT).set_color(BLUE)
+        self.play(
+            Create(line, rate_func=cubic_out),
+            fade_and_shift_in(c_text, RIGHT)
+        )
+
+
+        def set_objects(n: int):
+            dot.move_to(axes.coords_to_point(n, math.log(n)))
+            line.move_to(UP*axes.coords_to_point(n, math.log(n)))
+            dotted_line.become(DottedLine(axes.coords_to_point(n, 0) + DOWN*0.4, axes.coords_to_point(n, math.log(n))).set_color(YELLOW))
+            n_text.become(MathTex(n).move_to(axes.coords_to_point(n, 0) + DOWN*0.55, UP).set_color(YELLOW))
+            c_text.become(MathTex(f"c_{{{n}}}").move_to(axes.coords_to_point(n/2, math.log(n)) + UP*0.25, DOWN).set_color(BLUE))
+
+        opacity_vt = ValueTracker(1)
+
+        set_objects(1)
+        self.wait()
+        set_objects(2)
+        self.wait()
+        set_objects(3)
+        self.wait()
+
+        point_x_vt.set_value(4)
+        def updater(_):
+            set_objects(math.floor(point_x_vt.get_value()))
+            VGroup(line, c_text).set_opacity(opacity_vt.get_value())
+        u.add_updater(updater)
+
+        self.play(
+            LaggedStart(
+                point_x_vt.animate(rate_func=sin_smooth_in(0.6), run_time=4).set_value(25),
+                opacity_vt.animate(rate_func=linear).set_value(0),
+                lag_ratio=3/4
+            )
         )

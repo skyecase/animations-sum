@@ -1,8 +1,9 @@
 import math
 from manim import *
 
-from modules.custom_mobjects import FullscreenAxes
+from modules.custom_mobjects import DottedLine, FullscreenAxes, create_axes
 from modules.helpers import create_updater_container, fade_and_shift_in, fade_and_shift_out, fade_and_shift_out_color, highlight_animation, morph_text, rotate_points
+from modules.interpolation import cubic_out, sin_smooth_in_out
 
 
 # Adds the arrow on a sigma
@@ -155,8 +156,66 @@ class Constant(Scene):
         def make_axes():
             center_x = axis_space_center_vt.get_value()
             return FullscreenAxes(self, LEFT*AXIS_SCALE*center_x + DOWN*AXIS_SCALE*math.log(center_x), [0.8, 0.8], major_tick_every=[10, None])
-        
         axes = make_axes()
-        self.add(axes)
-        u.add_updater(lambda _: axes.become(make_axes()))
 
+
+        def create_curve(): 
+            return ParametricFunction(lambda t: axes.coords_to_point(t, math.log(t)), [max(0.01, axes.point_to_coords(LEFT*7.5)[0]), axes.point_to_coords(RIGHT*7.5)[0]], color=RED)
+        curve = create_curve()
+
+        def create_line():
+            return Line(LEFT*7.5 + UP*axes.coords_to_point(0, PI), RIGHT*7.5 + UP*axes.coords_to_point(0, PI), color=BLUE)
+        line = create_line()
+
+
+        self.play(
+            LaggedStart(
+                create_axes(self, axes),
+                Create(curve),
+                Create(line),
+                lag_ratio=0.25
+            )
+        )
+        self.add(axes)
+        self.add(curve)
+        self.add(line)
+
+        u.add_updater(lambda _: axes.become(make_axes()))
+        u.add_updater(lambda _: curve.become(create_curve()))
+        u.add_updater(lambda _: line.become(create_line()))
+
+        self.play(axis_space_center_vt.animate.set_value(27), run_time=3, rate_func=sin_smooth_in_out(0.1))
+
+        u.remove_updater_index(-1)
+
+
+        dot_1 = Dot(axes.coords_to_point(math.e**PI, PI), 0.1, color=YELLOW)
+        dot_1.save_state(); dot_1.scale(0)
+        # dotted_line_1 = DottedLine(dot_1.get_center(), axes.coords_to_point(math.e**PI, 0), color=BLUE)
+        # dotted_line_1.set_z_index(-1)
+
+        line_2 = Line(axes.coords_to_point(31 - 3, math.log(31)), axes.coords_to_point(31 + 3, math.log(31)), color=BLUE)
+        line_2.save_state(); line_2.scale(0)
+        dot_2 = Dot(axes.coords_to_point(31, math.log(31)), 0.1, color=YELLOW)
+        dot_2.save_state(); dot_2.scale(0)
+        # dotted_line_2 = DottedLine(dot_2.get_center(), axes.coords_to_point(math.e**PI, 0), color=GREEN)
+        # dotted_line_2.set_z_index(-1)
+
+        self.play(
+            LaggedStart(
+                AnimationGroup(
+                    Transform(line, Line(axes.coords_to_point(math.e**PI - 3, PI), axes.coords_to_point(math.e**PI + 3, PI), color=BLUE), rate_func=cubic_out),
+                    dot_1.animate(rate_func=cubic_out).restore(),
+                    # FadeIn(dot_1, scale=0, rate_func=cubic_out),
+                    # Create(dotted_line_1),
+                ),
+                AnimationGroup(
+                    line_2.animate(rate_func=cubic_out).restore(),
+                    dot_2.animate(rate_func=cubic_out).restore(),
+                    # FadeIn(dot_2, scale=0, rate_func=cubic_out),
+                    # Create(dotted_line_2),
+                ),
+                lag_ratio = 0.5,
+                run_time = 1
+            )
+        )

@@ -2,7 +2,7 @@ import math
 from manim import *
 
 from modules.custom_mobjects import DottedLine, FullscreenAxes, create_axes
-from modules.helpers import create_updater_container, fade_and_shift_in, fade_and_shift_out, fade_and_shift_out_color, highlight_animation, morph_text, rotate_points
+from modules.helpers import create_time_getter, create_updater_container, fade_and_shift_in, fade_and_shift_out, fade_and_shift_out_color, highlight_animation, morph_text, rotate_points
 from modules.interpolation import cubic_out, cubic_in, sin_smooth_in, sin_smooth_in_out
 
 
@@ -180,7 +180,8 @@ class Constant(Scene):
         self.add(curve)
         self.add(line)
 
-        u.add_updater(lambda _: axes.become(make_axes()))
+        def axis_updater(_): axes.become(make_axes())
+        u.add_updater(axis_updater)
         u.add_updater(lambda _: curve.become(create_curve()))
         u.add_updater(lambda _: line.become(create_line()))
 
@@ -313,21 +314,15 @@ class Constant(Scene):
 
 
         set_objects(5)
-        self.remove(dotted_line, c_text)
-        n_text.become(MathTex("n").move_to(axes.coords_to_point(5, 0) + DOWN*0.55, UP).set_color(YELLOW))
+        self.remove(dotted_line, c_text, n_text)
+        n_equals_text = MathTex("n =", "5", color=YELLOW).move_to(axes.coords_to_point(5, 0) + DOWN*0.55, UP).set_color(YELLOW)
         dot.save_state(); dot.scale(0)
-
-
-        invisible_text = MathTex("n =").move_to(UP*3)
-        n_equals_text = MathTex("n =", "5")
-        n_equals_text.shift(invisible_text.get_center() - n_equals_text[0].get_center())
 
         self.play(
             dot.animate(rate_func=cubic_out).restore(),
             Create(line, rate_func=cubic_out),
             Create(dotted_line, rate_func=cubic_out),
-            fade_and_shift_in(n_text, UP),
-            fade_and_shift_in(n_equals_text, DOWN),
+            fade_and_shift_in(n_equals_text, UP),
         )
 
 
@@ -351,14 +346,13 @@ class Constant(Scene):
             run_time = 0.75
         )
 
-        n_plus_5_line = DottedLine(axes.coords_to_point(5 + 5, 0) + UP*0.06, axes.coords_to_point(5 + 5, 2.75)).set_color(green_color)
+        n_plus_5_line = DottedLine(axes.coords_to_point(5 + 5, 0) + UP*0.26, axes.coords_to_point(5 + 5, 2.75)).set_color(green_color)
         n_plus_5_text = MathTex("n + 5").set_color(green_color).move_to(axes.coords_to_point(5 + 5, 3.25))
         self.play(
             Create(n_plus_5_line, rate_func=cubic_out),
             fade_and_shift_in(n_plus_5_text, DOWN),
             run_time = 0.75
         )
-
 
 
         def create_stuff(val, const=5):
@@ -380,6 +374,10 @@ class Constant(Scene):
         n_plus_5_stuff.save_state()
         n_plus_5_stuff[0].scale(0); n_plus_5_stuff[1].scale(0); n_plus_5_stuff[2].set_stroke(width=0)
 
+        invisible_text = MathTex("n =", "0").move_to(DOWN*0.6)
+
+        dotted_line.reverse_direction()
+
         self.play(
             n_minus_pi_stuff.animate(rate_func=cubic_out).restore(),
             n_plus_one_half_stuff.animate(rate_func=cubic_out).restore(),
@@ -389,8 +387,7 @@ class Constant(Scene):
             n_plus_5_line.animate(rate_func=cubic_out, run_time=0.5, remover=True).set_stroke(width=0),
 
             Uncreate(dotted_line),
-            fade_and_shift_out(n_text, DOWN),
-            n_equals_text.animate.shift(DOWN*0.75),
+            n_equals_text.animate.shift(invisible_text[0].get_center() - n_equals_text[0].get_center()),
             
             n_minus_pi_text.animate.move_to(RIGHT*n_minus_pi_text.get_center() + UP*0.6),
             n_plus_one_half_text.animate.move_to(axes.coords_to_point(5 + 1/2, math.log(5 + 1/2)) + UP*0.6),
@@ -414,25 +411,47 @@ class Constant(Scene):
             dot.move_to(axes.coords_to_point(n, math.log(n)))
             line.move_to(UP*axes.coords_to_point(n, math.log(n)))
 
-            n_equals_text.become(MathTex("n =", int(n)))
-            n_equals_text.shift(invisible_text.get_center() - n_equals_text[0].get_center())
+            digits = int(math.log10(n)) + 1
+            invisible_text.become(MathTex("n =", "0" * digits)).move_to(axes.coords_to_point(n, math.log(n)) + DOWN*0.6)
+            n_equals_text.become(MathTex("n =", int(n), color=YELLOW))
+            n_equals_text.shift(invisible_text[0].get_center() - n_equals_text[0].get_center())
         
         u.add_updater(stuff_updater)
 
 
-        final_value_tracker = ValueTracker(5)
 
-        def round_updater(_):
-            x = final_value_tracker.get_value()
-            point_x_vt.set_value(round(x))
-            axis_space_center_vt.set_value(x)
-            if x > 13: axis_space_center_vt.set_value(round(x))
+
+
+        v_offset_vt = ValueTracker(0)
+
+        u.remove_updater(axis_updater)
+        def make_axes():
+            center_x = axis_space_center_vt.get_value()
+            return FullscreenAxes(self, LEFT*AXIS_SCALE*center_x + DOWN*(v_offset_vt.get_value() + AXIS_SCALE*math.log(center_x)), [0.8, 0.8], major_tick_every=[10, None])
+        u.add_updater(lambda _: axes.become(make_axes()), 0)
+
+        get_time = create_time_getter(self)
         
+        def round_updater(_):
+            A = 30 # Higher = slower ease
+            x = math.sqrt((18*get_time())**2 + A**2) - A + 5
+            point_x_vt.set_value(round(x))
+            axis_space_center_vt.set_value(round(x))
         u.add_updater(round_updater, 0)
 
 
+        self.wait(5)
+
+        text = MathTex("\\lim_{n \\to \\infty} (f(n + x) - c_n) = 0").move_to(UP)
+        top_text = Tex("For every $x$,").move_to(text.get_top() + UP*0.5, DOWN)
+
         self.play(
-            final_value_tracker.animate.set_value(150),
-            rate_func=sin_smooth_in(0.4),
-            run_time=10
+            LaggedStart(
+                v_offset_vt.animate(run_time=1.5).set_value(2),
+                Write(top_text),
+                Write(text),
+                lag_ratio=0.5
+            )
         )
+
+        self.wait(5)

@@ -29,7 +29,7 @@ class UpdaterContainer(Mobject):
     
     def pop_updater(self):
         self.remove_updater_index(len(self.get_updaters()) - 1)
-
+    
 def create_updater_container(scene):
     u = UpdaterContainer(scene)
     scene.add(u)

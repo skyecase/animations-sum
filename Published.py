@@ -281,9 +281,11 @@ class Constant(Scene):
             line.move_to(UP*axes.coords_to_point(n, math.log(n)))
             dotted_line.become(DottedLine(axes.coords_to_point(n, 0) + DOWN*0.4, axes.coords_to_point(n, math.log(n))).set_color(YELLOW))
             n_text.become(MathTex(n).move_to(axes.coords_to_point(n, 0) + DOWN*0.55, UP).set_color(YELLOW))
-            c_text.become(MathTex(f"c_{{{n}}}").move_to(axes.coords_to_point(n/2, math.log(n)) + UP*0.25, DOWN).set_color(BLUE))
+            c_text.become(MathTex(f"c_{{{n}}}").move_to(axes.coords_to_point((n**0.75)/2, math.log(n)) + UP*0.25, DOWN).set_color(BLUE))
 
         opacity_vt = ValueTracker(1)
+
+        self.wait()
 
         set_objects(1)
         self.wait()
@@ -300,8 +302,137 @@ class Constant(Scene):
 
         self.play(
             LaggedStart(
-                point_x_vt.animate(rate_func=sin_smooth_in(0.6), run_time=4).set_value(25),
+                point_x_vt.animate(rate_func=sin_smooth_in(0.6), run_time=4).set_value(35),
                 opacity_vt.animate(rate_func=linear).set_value(0),
                 lag_ratio=3/4
             )
+        )
+
+        u.remove_updater(updater)
+        VGroup(line, c_text).set_opacity(1)
+
+
+        set_objects(5)
+        self.remove(dotted_line, c_text)
+        n_text.become(MathTex("n").move_to(axes.coords_to_point(5, 0) + DOWN*0.55, UP).set_color(YELLOW))
+        dot.save_state(); dot.scale(0)
+
+
+        invisible_text = MathTex("n =").move_to(UP*3)
+        n_equals_text = MathTex("n =", "5")
+        n_equals_text.shift(invisible_text.get_center() - n_equals_text[0].get_center())
+
+        self.play(
+            dot.animate(rate_func=cubic_out).restore(),
+            Create(line, rate_func=cubic_out),
+            Create(dotted_line, rate_func=cubic_out),
+            fade_and_shift_in(n_text, UP),
+            fade_and_shift_in(n_equals_text, DOWN),
+        )
+
+
+        green_color = '#53ff55'
+
+
+        n_plus_one_half_line = DottedLine(axes.coords_to_point(5 + 1/2, 0) + UP*0.06, axes.coords_to_point(5 + 1/2, 2.75)).set_color(green_color)
+        n_plus_one_half_text = MathTex("n + \\tfrac12").set_color(green_color).move_to(axes.coords_to_point(5 + 1/2, 3.25))
+        self.play(
+            Create(n_plus_one_half_line, rate_func=cubic_out),
+            fade_and_shift_in(n_plus_one_half_text, DOWN),
+            run_time = 0.75
+        )
+
+
+        n_minus_pi_line = DottedLine(axes.coords_to_point(5 - PI, 0) + UP*0.06, axes.coords_to_point(5 - PI, 2.75)).set_color(green_color)
+        n_minus_pi_text = MathTex("n - \\pi").set_color(green_color).move_to(axes.coords_to_point(5 - PI, 3.25))
+        self.play(
+            Create(n_minus_pi_line, rate_func=cubic_out),
+            fade_and_shift_in(n_minus_pi_text, DOWN),
+            run_time = 0.75
+        )
+
+        n_plus_5_line = DottedLine(axes.coords_to_point(5 + 5, 0) + UP*0.06, axes.coords_to_point(5 + 5, 2.75)).set_color(green_color)
+        n_plus_5_text = MathTex("n + 5").set_color(green_color).move_to(axes.coords_to_point(5 + 5, 3.25))
+        self.play(
+            Create(n_plus_5_line, rate_func=cubic_out),
+            fade_and_shift_in(n_plus_5_text, DOWN),
+            run_time = 0.75
+        )
+
+
+
+        def create_stuff(val, const=5):
+            const_dot = Dot(axes.coords_to_point(val, math.log(const)), color=green_color)
+            curve_dot = Dot(axes.coords_to_point(val, math.log(val)), color=green_color)
+            line = Line(const_dot.get_center(), curve_dot.get_center(), color=green_color)
+            return VGroup(const_dot, curve_dot, line)
+        
+
+        n_minus_pi_stuff = create_stuff(5 - PI)
+        n_minus_pi_stuff.save_state()
+        n_minus_pi_stuff[0].scale(0); n_minus_pi_stuff[1].scale(0); n_minus_pi_stuff[2].set_stroke(width=0)
+
+        n_plus_one_half_stuff = create_stuff(5 + 1/2)
+        n_plus_one_half_stuff.save_state()
+        n_plus_one_half_stuff[0].scale(0); n_plus_one_half_stuff[1].scale(0); n_plus_one_half_stuff[2].set_stroke(width=0)
+
+        n_plus_5_stuff = create_stuff(5 + 5)
+        n_plus_5_stuff.save_state()
+        n_plus_5_stuff[0].scale(0); n_plus_5_stuff[1].scale(0); n_plus_5_stuff[2].set_stroke(width=0)
+
+        self.play(
+            n_minus_pi_stuff.animate(rate_func=cubic_out).restore(),
+            n_plus_one_half_stuff.animate(rate_func=cubic_out).restore(),
+            n_plus_5_stuff.animate(rate_func=cubic_out).restore(),
+            n_minus_pi_line.animate(rate_func=cubic_out, run_time=0.5, remover=True).set_stroke(width=0),
+            n_plus_one_half_line.animate(rate_func=cubic_out, run_time=0.5, remover=True).set_stroke(width=0),
+            n_plus_5_line.animate(rate_func=cubic_out, run_time=0.5, remover=True).set_stroke(width=0),
+
+            Uncreate(dotted_line),
+            fade_and_shift_out(n_text, DOWN),
+            n_equals_text.animate.shift(DOWN*0.75),
+            
+            n_minus_pi_text.animate.move_to(RIGHT*n_minus_pi_text.get_center() + UP*0.6),
+            n_plus_one_half_text.animate.move_to(axes.coords_to_point(5 + 1/2, math.log(5 + 1/2)) + UP*0.6),
+            n_plus_5_text.animate.move_to(axes.coords_to_point(5 + 5, math.log(5 + 5)) + UP*0.6)
+        )
+        invisible_text.shift(DOWN*0.75)
+
+
+
+        def stuff_updater(_):
+            n = point_x_vt.get_value()
+
+            n_minus_pi_stuff.become(create_stuff(n - PI, n))
+            n_plus_one_half_stuff.become(create_stuff(n + 1/2, n))
+            n_plus_5_stuff.become(create_stuff(n + 5, n))
+
+            n_minus_pi_text.move_to(axes.coords_to_point(n - PI, math.log(n)) + UP*0.6)
+            n_plus_one_half_text.move_to(axes.coords_to_point(n + 1/2, math.log(n + 1/2)) + UP*0.6)
+            n_plus_5_text.move_to(axes.coords_to_point(n + 5, math.log(n + 5)) + UP*0.6)
+
+            dot.move_to(axes.coords_to_point(n, math.log(n)))
+            line.move_to(UP*axes.coords_to_point(n, math.log(n)))
+
+            n_equals_text.become(MathTex("n =", int(n)))
+            n_equals_text.shift(invisible_text.get_center() - n_equals_text[0].get_center())
+        
+        u.add_updater(stuff_updater)
+
+
+        final_value_tracker = ValueTracker(5)
+
+        def round_updater(_):
+            x = final_value_tracker.get_value()
+            point_x_vt.set_value(round(x))
+            axis_space_center_vt.set_value(x)
+            if x > 13: axis_space_center_vt.set_value(round(x))
+        
+        u.add_updater(round_updater, 0)
+
+
+        self.play(
+            final_value_tracker.animate.set_value(150),
+            rate_func=sin_smooth_in(0.4),
+            run_time=10
         )

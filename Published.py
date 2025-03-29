@@ -2,8 +2,8 @@ import math
 from manim import *
 
 from modules.custom_mobjects import DottedLine, FullscreenAxes, create_axes
-from modules.helpers import create_time_getter, create_updater_container, fade_and_shift_in, fade_and_shift_out, fade_and_shift_out_color, highlight_animation, morph_text, rotate_points
-from modules.interpolation import cubic_out, cubic_in, sin_smooth_in, sin_smooth_in_out
+from modules.helpers import create_time_getter, create_updater_container, fade_and_shift_in, fade_and_shift_out, fade_and_shift_out_color, highlight, highlight_animation, morph_text, rotate_points
+from modules.interpolation import cubic_out, cubic_in, sin_smooth_in, sin_smooth_in_out, cubic_in_out
 
 
 # Adds the arrow on a sigma
@@ -585,3 +585,60 @@ class Definition(Scene):
         )
 
         self.play(Transform(def_text, new_def_text))
+
+        
+        self.remove(*text, *new_text)
+        text = MathTex("\\lim_{n \\to \\infty} (f(n + x) - p_n(n + x)) = 0", ".").move_to(DOWN)
+        self.add(text)
+
+        new_text = MathTex("\\lim_{n \\to \\infty} (f(n + x) - p_n(n + x)) = 0").move_to(UP*2.5)
+        s_def_text = MathTex("S(x) = \\lim_{n\\to\\infty} \\left( \\sum_{k=1}^n (f(k) - f(x+k)) + \\sum_{k=1}^x", "f(n+k)", "\\right)")
+
+        self.play(
+            LaggedStart(
+                AnimationGroup(
+                    def_text.animate(remover=True, rate_func=cubic_in).move_to(UP*4, DOWN),
+                    morph_text(text, new_text, [0], run_time=2, rate_func=cubic_in_out)
+                ),
+                Write(s_def_text),
+                lag_ratio = 0.5
+            )
+        )
+
+        self.remove(*text, *new_text)
+        text = new_text
+        self.add(text)
+
+        self.play(
+            highlight_animation(s_def_text[1], BLUE)
+        )
+
+        new_s_def_text = MathTex("S(x) = \\lim_{n\\to\\infty} \\left( \\sum_{k=1}^n (f(k) - f(x+k)) + \\sum_{k=1}^x", "p_n(n+k)", "\\right)")
+
+        self.play(Transform(s_def_text, new_s_def_text))
+
+        
+        self.remove(s_def_text)
+        s_def_text = MathTex("S(x) = \\lim_{n\\to\\infty} \\left( \\sum_{k=1}^n (f(k) - f(x+k)) +", "\\sum_{k=1}^x p_n(n+k)", "\\right)")
+        self.add(s_def_text)
+
+        polynomial_text = Tex("This is a polynomial!").move_to(s_def_text[1].get_bottom() + DOWN*0.5, UP).set_color(BLUE)
+
+        self.play(
+            highlight_animation(s_def_text[1], BLUE),
+            FadeIn(polynomial_text, shift=UP)
+        )
+
+
+        p_text = MathTex("P_n(x) = \\sum_{k=1}^x p_n(n + k)").move_to(DOWN*2)
+
+        self.play(
+            FadeIn(p_text, shift=UP),
+            FadeOut(polynomial_text, scale=0, shift = UP*0.25)
+        )
+
+
+        new_s_def_text = MathTex("S(x) = \\lim_{n\\to\\infty} \\left( \\sum_{k=1}^n (f(k) - f(x+k)) +", "P_n(x)", "\\right)")
+        self.play(Transform(s_def_text, new_s_def_text))
+
+        self.wait()

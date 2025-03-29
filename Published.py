@@ -444,6 +444,8 @@ class Constant(Scene):
 
         text = MathTex("\\lim_{n \\to \\infty} (f(n + x) - c_n) = 0").move_to(UP)
         top_text = Tex("For every $x$,").move_to(text.get_top() + UP*0.5, DOWN)
+        text.set_z_index(3)
+        top_text.set_z_index(3)
 
         self.play(
             LaggedStart(
@@ -455,3 +457,31 @@ class Constant(Scene):
         )
 
         self.wait(5)
+
+
+
+        black_fade = Square(16, color=BLACK, fill_opacity=1)
+        black_fade.set_z_index(2)
+
+        def_text = Tex(
+            "$f(x)$ behaves like a constant if \\\\",
+            "there is a sequence of constants \\\\",
+            "$c_1, c_2, c_3 \\dots$ such that ", "for every $x$,"
+        )
+        for t in def_text[:2] + [def_text[2:]]:
+            t.shift(RIGHT*(-t.get_left()))
+        def_text.move_to(RIGHT*0.2 + UP*0.5).set_z_index(3)
+
+        rotate_points(def_text[3][0], 28)
+
+        self.play(
+            LaggedStart(
+                FadeIn(black_fade, rate_func=linear),
+                AnimationGroup(
+                    FadeIn(def_text[:3], shift=def_text[3].get_center() - top_text.get_center()),
+                    Transform(top_text[0], def_text[3]),
+                    text.animate.move_to(DOWN*1.5)
+                ),
+                lag_ratio=0.5
+            )
+        )

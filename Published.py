@@ -470,9 +470,12 @@ class Constant(Scene):
         )
         for t in def_text[:2] + [def_text[2:]]:
             t.shift(RIGHT*(-t.get_left()))
-        def_text.move_to(RIGHT*0.2 + UP*0.5).set_z_index(3)
+        def_text.move_to(RIGHT*0.2 + UP).set_z_index(3)
 
         rotate_points(def_text[3][0], 28)
+
+        new_text = MathTex("\\lim_{n \\to \\infty} (f(n + x) - c_n) = 0", ".").move_to(DOWN)
+        new_text.set_z_index(3)
 
         self.play(
             LaggedStart(
@@ -480,8 +483,105 @@ class Constant(Scene):
                 AnimationGroup(
                     FadeIn(def_text[:3], shift=def_text[3].get_center() - top_text.get_center()),
                     Transform(top_text[0], def_text[3]),
-                    text.animate.move_to(DOWN*1.5)
+                    morph_text(text, new_text, [0])
                 ),
                 lag_ratio=0.5
             )
         )
+
+
+
+class Definition(Scene):
+    def construct(self):
+        def_text = Tex(
+            "$f(x)$ behaves like a ", "constant ", "if \\\\",
+            "there is a sequence of ", "constants \\\\",
+            "$c_1, c_2, c_3 \\dots$ ", "such that for every $x$,"
+        )
+        for t in [def_text[0:3], def_text[3:5], def_text[5:]]:
+            t.shift(RIGHT*(-t.get_left()))
+        def_text.move_to(RIGHT*0.2 + UP)
+
+        text = MathTex("\\lim_{n \\to \\infty} (f(n + x) -", "c_", "n", ") = 0.").move_to(DOWN)
+
+        self.add(text, def_text)
+
+        self.play(
+            highlight_animation(def_text[1], BLUE),
+            highlight_animation(def_text[4], BLUE),
+        )
+
+
+        new_def_text = Tex(
+            "$f(x)$ behaves like a ", "degree $0$ polynomial ", "if \\\\",
+            "there is a sequence of ", "degree $0$ polynomials \\\\",
+            "$c_1, c_2, c_3\\dots$ ", "such that for every $x$,"
+        )
+        for t in [new_def_text[0:3], new_def_text[3:5], new_def_text[5:]]:
+            t.shift(RIGHT*(-t.get_left()))
+        new_def_text.move_to(UP)
+
+        self.play(Transform(def_text, new_def_text))
+
+        self.remove(*def_text, *new_def_text)
+
+
+        def_text = Tex(
+            "$f(x)$ behaves like a degree $0$ polynomial if \\\\",
+            "there is a sequence of degree $0$ polynomials \\\\",
+            "$c_1, c_2, c_3\\dots$ such that for every $x$,"
+        )
+        for t in def_text:
+            t.shift(RIGHT*(-t.get_left()))
+        def_text.move_to(UP)
+        self.add(def_text)
+
+        self.play(
+            highlight_animation(VGroup(def_text[2][0], def_text[2][3], def_text[2][6]), RED),
+            highlight_animation(text[1], RED)
+        )
+
+
+        new_def_text = Tex(
+            "$f(x)$ behaves like a degree $0$ polynomial if \\\\",
+            "there is a sequence of degree $0$ polynomials \\\\",
+            "$p_1, p_2, p_3\\dots$ such that for every $x$,"
+        )
+        for t in [new_def_text[0], new_def_text[1], new_def_text[2:]]:
+            t.shift(RIGHT*(-t.get_left()))
+        new_def_text.move_to(UP)
+
+        new_text = MathTex("\\lim_{n \\to \\infty} (f(n + x) -", "p_", "n", "(n + x)", ") = 0.").move_to(DOWN)
+
+        self.play(
+            Transform(def_text, new_def_text),
+            morph_text(text, new_text, [0, 1, 2, 4])
+        )
+        
+
+
+        self.remove(*def_text, *new_def_text)
+        def_text = Tex(
+            "$f(x)$ behaves like a degree ", "$0$ ", "polynomial if \\\\",
+            "there is a sequence of degree ", "$0$ ", "polynomials \\\\",
+            "$p_1, p_2, p_3\\dots$ such that for every $x$,"
+        )
+        for t in [def_text[0:3], def_text[3:6], def_text[6:]]:
+            t.shift(RIGHT*(-t.get_left()))
+        def_text.move_to(UP)
+        self.add(def_text)
+
+        new_def_text = Tex(
+            "$f(x)$ behaves like a degree ", "$m$ ", "polynomial if \\\\",
+            "there is a sequence of degree ", "$m$ ", "polynomials \\\\",
+            "$p_1, p_2, p_3\\dots$ such that for every $x$,"
+        )
+        for t in [new_def_text[0:3], new_def_text[3:6], new_def_text[6:]]:
+            t.shift(RIGHT*(-t.get_left()))
+        new_def_text.move_to(UP)
+
+        self.play(
+            highlight_animation(VGroup(def_text[1], def_text[4]), BLUE)
+        )
+
+        self.play(Transform(def_text, new_def_text))

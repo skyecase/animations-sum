@@ -26,7 +26,7 @@ class Intro(Scene):
         self.play(
             LaggedStart(
                 *[fade_and_shift_in(t, LEFT) for t in text_1[1]],
-                lag_ratio=0.25
+                lag_ratio=0.15
             )
         )
 
@@ -183,12 +183,6 @@ class IntroGraphs(Scene):
 
         self.add(graph_rect_2, axes_2, dots_2)
 
-        bottom_black = Rectangle(BLACK, height=2, width=16, stroke_width=0, fill_opacity=1).move_to(graph_rect_2.get_bottom(), UP)
-        top_black = Rectangle(BLACK, height=2, width=16, stroke_width=0, fill_opacity=1).move_to(graph_rect_2.get_top(), DOWN)
-        bottom_black.set_z_index(1)
-        top_black.set_z_index(1)
-        self.add(bottom_black, top_black)
-
         s_text_2 = MathTex("\\sum_{k=1}^x \\ln(k)").move_to(UP*2 + RIGHT*GRAPH_SEPARATION)
         s_text_2.set_z_index(2)
         self.add(s_text_2)
@@ -217,6 +211,14 @@ class IntroGraphs(Scene):
         self.play(Create(curve_2))
 
 
+        what_about = Tex("What about every other function?").move_to(DOWN*2.75)
+        what_about.set_z_index(2)
+
+        self.play(
+            VGroup(axes_1, dots_1, curve_1, graph_rect_1, axes_2, dots_2, curve_2, graph_rect_2, bottom_black, top_black).animate.shift(UP*0.75),
+            VGroup(s_text_1, s_text_2).animate.shift(UP*0.5),
+            FadeIn(what_about, shift=UP)
+        )
 
 
 

@@ -1,6 +1,8 @@
+import math
 from manim import *
 
-from modules.helpers import create_double_arrow, fade_and_shift_in, highlight_animation, morph_text
+from modules.custom_mobjects import FullscreenAxes
+from modules.helpers import create_double_arrow, fade_and_shift_in, highlight_animation, morph_text, normalize_point_speed
 from modules.interpolation import bounce, cubic_out, cubic_in
 
 
@@ -101,10 +103,125 @@ class Intro(Scene):
             FadeOut(summary_text, shift=UP*1.5)
         )
 
+        self.wait()
+
+
+
+def h(n):
+    total = 0
+    for i in range(1, n+1):
+        total += 1/i
+    return total
+
+def h_real(x, n=100):
+    total = 0
+    for i in range(1, n):
+        total += 1/i - 1/(x+i)
+    total += x/n
+    total += x*(x-1)/2 * (1/(n+1) - 1/n)
+    total += x*(x-1)*(x-2)/6 * (1/(n+2) - 2/(n+1) + 1/n)
+    return total
+
+
+def l(n):
+    total = 0
+    for i in range(1, n+1):
+        total += math.log(i)
+    return total
+
+def l_real(x, n=100):
+    total = 0
+    for i in range(1, n):
+        total += math.log(i) - math.log((x+i))
+    total += x*math.log(n)
+    total += x*(x-1)/2 * (math.log((n+1)) - math.log(n))
+    total += x*(x-1)*(x-2)/6 * (math.log((n+2)) - 2*math.log((n+1)) + math.log(n))
+    return total
+
+
+class IntroGraphs(Scene):
+    def construct(self):
+        GRAPH_WIDTH = 5
+        GRAPH_HEIGHT = 3
+        GRAPH_V_OFFSET = DOWN
+        GRAPH_SEPARATION = 6
+        
+        graph_rect_1 = Rectangle(width=GRAPH_WIDTH, height=GRAPH_HEIGHT)
+        graph_rect_1.set_z_index(2)
+
+        axes_1 = FullscreenAxes(self, LEFT*1.5 + DOWN*0.5, [0.6, 0.6], rect=graph_rect_1)
+        graph_rect_1.shift(GRAPH_V_OFFSET); axes_1.shift(GRAPH_V_OFFSET)
+        dots_1 = VGroup(*[Dot(axes_1.coords_to_point(i, h(i)), color=BLUE) for i in range(1, 7)])
+        dots_1.set_z_index(1)
+
+        self.add(graph_rect_1, axes_1, dots_1)
+
+        bottom_black = Rectangle(BLACK, height=2, width=16, stroke_width=0, fill_opacity=1).move_to(graph_rect_1.get_bottom(), UP)
+        top_black = Rectangle(BLACK, height=2, width=16, stroke_width=0, fill_opacity=1).move_to(graph_rect_1.get_top(), DOWN)
+        bottom_black.set_z_index(1)
+        top_black.set_z_index(1)
+        self.add(bottom_black, top_black)
+
+        s_text_1 = MathTex("\\sum_{k=1}^x \\frac1k").move_to(UP*2)
+        s_text_1.set_z_index(2)
+        self.add(s_text_1)
+
+        curve_1 = ParametricFunction(lambda t: axes_1.coords_to_point(t, h_real(t)), [-0.6, 6.7], color=YELLOW)
+        self.play(Create(curve_1))
+
+
+
+        # Second graph
+
+        graph_rect_2 = Rectangle(width=GRAPH_WIDTH, height=GRAPH_HEIGHT)
+        graph_rect_2.set_z_index(2)
+
+        axes_2 = FullscreenAxes(self, LEFT*1.5 + DOWN, [0.6, 0.35], rect=graph_rect_2)
+        graph_rect_2.shift(GRAPH_V_OFFSET + RIGHT*GRAPH_SEPARATION); axes_2.shift(GRAPH_V_OFFSET + RIGHT*GRAPH_SEPARATION)
+        dots_2 = VGroup(*[Dot(axes_2.coords_to_point(i, l(i)), color=BLUE) for i in range(1, 7)])
+        dots_2.set_z_index(1)
+
+        self.add(graph_rect_2, axes_2, dots_2)
+
+        bottom_black = Rectangle(BLACK, height=2, width=16, stroke_width=0, fill_opacity=1).move_to(graph_rect_2.get_bottom(), UP)
+        top_black = Rectangle(BLACK, height=2, width=16, stroke_width=0, fill_opacity=1).move_to(graph_rect_2.get_top(), DOWN)
+        bottom_black.set_z_index(1)
+        top_black.set_z_index(1)
+        self.add(bottom_black, top_black)
+
+        s_text_2 = MathTex("\\sum_{k=1}^x \\ln(k)").move_to(UP*2 + RIGHT*GRAPH_SEPARATION)
+        s_text_2.set_z_index(2)
+        self.add(s_text_2)
+
+        black_fade = Rectangle(BLACK, height=10, width=GRAPH_WIDTH+1, stroke_width=0, fill_opacity=1).move_to(RIGHT*GRAPH_SEPARATION)
+        black_fade.set_z_index(3)
+        self.add(black_fade)
+
+        self.play(
+            axes_1.animate.shift(LEFT*GRAPH_SEPARATION/2),
+            dots_1.animate.shift(LEFT*GRAPH_SEPARATION/2),
+            s_text_1.animate.shift(LEFT*GRAPH_SEPARATION/2),
+            curve_1.animate.shift(LEFT*GRAPH_SEPARATION/2),
+            graph_rect_1.animate.shift(LEFT*GRAPH_SEPARATION/2),
+
+            axes_2.animate.shift(LEFT*GRAPH_SEPARATION/2),
+            dots_2.animate.shift(LEFT*GRAPH_SEPARATION/2),
+            s_text_2.animate.shift(LEFT*GRAPH_SEPARATION/2),
+            graph_rect_2.animate.shift(LEFT*GRAPH_SEPARATION/2),
+            FadeOut(black_fade, shift=LEFT*GRAPH_SEPARATION/2)
+        )
+
+
+        curve_2 = ParametricFunction(lambda t: axes_2.coords_to_point(t, l_real(t)), [-0.9992, 6.35], color=YELLOW)
+        curve_2.set_points(normalize_point_speed(curve_2.points, 0.01))
+        self.play(Create(curve_2))
+
+
 
 
 
 class Integral(Scene):
+
     def construct(self):
         prerequisite_text = Tex("Prerequisites:", joint_type=LineJointType.ROUND).scale(1.5).move_to(UP*2)
         black_text = prerequisite_text.copy().set_stroke(width=10).set_color(BLACK)

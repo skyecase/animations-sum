@@ -76,6 +76,10 @@ class FullscreenAxes(VGroup):
     def point_to_coords(self, point: np.ndarray):
         return ((point[0] - self.a_origin[0]) / self.a_scale[0], (point[1] - self.a_origin[1]) / self.a_scale[1])
     
+    def shift(self, *vectors):
+        for vector in vectors:
+            self.a_origin += vector
+        super().shift(*vectors)
 
     def become(self, mobj):
         self.a_origin = mobj.a_origin

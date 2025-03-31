@@ -1,29 +1,25 @@
 from manim import *
 
-from modules.helpers import create_double_arrow, fade_and_shift_in, highlight_animation
-from modules.interpolation import cubic_out, cubic_in
+from modules.helpers import create_double_arrow, fade_and_shift_in, highlight_animation, morph_text
+from modules.interpolation import bounce, cubic_out, cubic_in
 
 
 
 class Intro(Scene):
     def construct(self):
-        # text_1 = MathTex("1", "+", "2", "+", "3", "+ \\cdots +", "x", "=\\quad \\frac{x(x+1)}2").move_to(UP*2)
-        # text_2 = MathTex("r^1", "+", "r^2", "+", "r^3", "+ \\cdots +", "r^x", "=\\quad r\\frac{1-r^x}{1-r}")
-        # text_3 = MathTex("f(1)", "+", "f(2)", "+", "f(3)", "+ \\cdots +", "f(x)", "=\\quad ???").move_to(DOWN*2)
+        sigma = MathTex("\\sum").scale(1.5)
+        sigma.save_state()
+        sigma.scale(0)
 
-        # for i in range(len(text_3[:-1])):
-        #     text_1[i].move_to(text_1[i].get_center()*UP + text_3[i].get_center()*RIGHT)
-        #     text_2[i].move_to(text_2[i].get_center()*UP + text_3[i].get_center()*RIGHT)
-        # text_1[-1].move_to(text_1[-1].get_center()*UP + text_3[-1].get_left()*RIGHT, LEFT)
-        # text_2[-1].move_to(text_2[-1].get_center()*UP + text_3[-1].get_left()*RIGHT, LEFT)
+        self.play(sigma.animate(rate_func=cubic_out, run_time=0.5).restore())
+        self.play(sigma.animate(rate_func=cubic_out, run_time=0.3).scale(1.35))
+        self.play(sigma.animate(rate_func=cubic_out, run_time=0.3).scale(1.25))
+        self.play(FadeOut(sigma, rate_func=cubic_in, scale=0))
 
-        # self.add(text_1)
-        # self.add(text_2)
-        # self.add(text_3)
+        text_1 = MathTex("\\sum_{k=1}^x k =", "1 + 2 + 3 + \\cdots + x").move_to(UP)
+        text_2 = MathTex("\\sum_{k=1}^x r^k =", "r^1", "+", "r^2", "+", "r^3", "+ \\cdots +", "r^x").move_to(DOWN)
 
-        text_1 = MathTex("\\sum_{k=1}^x k =", "1 + 2 + 3 + \\cdots + x", "=", "\\frac{x(x+1)}2")
-
-        self.play(Write(text_1[0]))
+        self.play(Write(text_1[0]), run_time=1)
 
         self.play(
             LaggedStart(
@@ -32,36 +28,78 @@ class Intro(Scene):
             )
         )
 
-        self.play(Write(text_1[2:]))
-
-        text_2 = MathTex("\\sum_{k=1}^x r^k =", "r^1", "+", "r^2", "+", "r^3", "+ \\cdots +", "r^x", "=", "r\\frac{1-r^x}{1-r}").move_to(DOWN)
-
-        self.play(
-            text_1.animate.move_to(UP),
-            FadeIn(text_2[0], shift=UP)
-        )
+        self.play(Write(text_2[0]), run_time=1)
 
         self.play(
             LaggedStart(
-                *[fade_and_shift_in(t, LEFT) for t in text_2[1:6].submobjects + text_2[6].submobjects + text_2[7:8].submobjects],
+                *[fade_and_shift_in(t, LEFT) for t in text_2[1:6].submobjects + text_2[6].submobjects + text_2[7:].submobjects],
                 lag_ratio=0.15
             )
         )
 
-        self.play(Write(text_2[-2:]))
-
-
-        text_1[-1].save_state()
-        text_2[-1].save_state()
+        new_text_1 = MathTex("\\sum_{k=1}^x k =", "1 + 2 + 3 + \\cdots + x", "=", "\\frac{x(x+1)}2").move_to(UP)
+        new_text_2 = MathTex("\\sum_{k=1}^x r^k =", "r^1 + r^2 + r^3 + \\cdots + r^x", "=", "r\\frac{1-r^x}{1-r}").move_to(DOWN)
 
         self.play(
-            highlight_animation(text_1[-1], scale=1),
-            highlight_animation(text_2[-1], scale=1),
-            text_1[:-1].animate.set_color(GREY),
-            text_2[:-1].animate.set_color(GREY),
+            text_1.animate.move_to(new_text_1[:-2]),
+            FadeIn(new_text_1[-2:], shift = LEFT*1.5),
         )
 
+        self.play(
+            text_2.animate.move_to(new_text_2[:-2]),
+            FadeIn(new_text_2[-2:], shift = LEFT*1.5)
+        )
 
+        self.remove(*text_1, *text_2)
+        text_1 = new_text_1; text_2 = new_text_2
+        self.add(text_1, text_2)
+
+        new_text_1 = MathTex("\\sum_{k=1}^x k =", "\\frac{x(x+1)}2").move_to(UP)
+        new_text_2 = MathTex("\\sum_{k=1}^x r^k =", "r\\frac{1-r^x}{1-r}").move_to(DOWN)
+
+        self.play(
+            morph_text(text_1, new_text_1, [0, None, None, 1], rate_func=bounce()),
+            morph_text(text_2, new_text_2, [0, None, None, 1], rate_func=bounce()),
+            run_time=1.5
+        )
+
+        self.remove(*text_1, *text_2, *new_text_1, *new_text_2)
+        text_1 = MathTex("\\sum_{k=1}^x k", "=", "\\frac{x(x+1)}2").move_to(UP)
+        text_2 = MathTex("\\sum_{k=1}^x r^k", "=", "r\\frac{1-r^x}{1-r}").move_to(DOWN)
+        self.add(text_1, text_2)
+
+        summary_text = Tex("$x$ must be a whole number.").move_to(text_1[0].get_top() + UP*0.75).set_color(RED)
+
+        text_1.save_state()
+        text_2.save_state()
+
+        text_1[0].save_state()
+        text_2[0].save_state()
+
+        self.play(
+            fade_and_shift_in(summary_text, shift=DOWN),
+            highlight_animation(text_1[0], RED, rate_func=cubic_out),
+            highlight_animation(text_2[0], RED, rate_func=cubic_out),
+        )
+
+        new_summary_text = Tex("$x$ can be anything!").move_to(text_1[2].get_top() + UP*0.75).set_color(BLUE)
+
+        self.play(
+            Transform(summary_text, new_summary_text),
+            highlight_animation(text_1[2], BLUE, scale=1.05),
+            highlight_animation(text_2[2], BLUE, scale=1.05),
+            text_1[0].animate.restore(),
+            text_2[0].animate.restore(),
+        )
+
+        text_3 = MathTex("\\sum_{k=1}^x f(k) = \\ \\ ???").move_to(DOWN*2 + LEFT*0.15)
+
+        self.play(
+            text_1.animate.restore().shift(UP),
+            text_2.animate.restore().shift(UP),
+            FadeIn(text_3, shift=UP*1.5),
+            FadeOut(summary_text, shift=UP*1.5)
+        )
 
 
 

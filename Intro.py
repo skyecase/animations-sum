@@ -220,6 +220,8 @@ class IntroGraphs(Scene):
             FadeIn(what_about, shift=UP)
         )
 
+        self.wait()
+
 
 
 class Integral(Scene):

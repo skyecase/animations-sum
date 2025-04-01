@@ -46,37 +46,32 @@ class FinalThoughts(Scene):
             FadeIn(VGroup(description, arrow), shift=UP)
         )
 
-        
-        counterexample = Tex("It doesn't converge for $\\displaystyle f(x) = \\frac{\\sin(2\\pi x)}{2\\pi x}$.").scale(0.8).move_to(DOWN*2).set_color(RED)
-
-        self.play(
-            FadeIn(counterexample, shift=UP),
-            VGroup(text, arrow, description).animate.shift(UP),
-            lim_text.animate.shift(UP*0.5)
-        )
-
         self.play(
             text.animate.restore().move_to(text),
-            fade_and_shift_out(VGroup(description, arrow, counterexample), DOWN)
+            fade_and_shift_out(VGroup(description, arrow), DOWN)
         )
 
 
         example_1 = MathTex("\\frac{x^2-3x+2}{x^2+3}").set_color(BLUE).move_to(DOWN*2 + LEFT*3)
         example_2 = MathTex("\\ln(x)").set_color(BLUE).move_to(DOWN*2)
-        example_3 = MathTex("\\sqrt{x}").set_color(BLUE).move_to(DOWN*2 + RIGHT*3)
+        examples_3 = VGroup(
+            MathTex("\\sqrt{x}").set_color(BLUE).move_to(DOWN*1.6 + RIGHT*2.8),
+            MathTex("x^\\pi").set_color(BLUE).move_to(DOWN*2.2 + RIGHT*3.7),
+            MathTex("x^{\\sqrt2}").set_color(BLUE).move_to(DOWN*2.6 + RIGHT*2.6),
+        )
 
         self.play(
             LaggedStart(
                 fade_and_shift_in(example_1, UP),
                 fade_and_shift_in(example_2, UP),
-                fade_and_shift_in(example_3, UP),
+                fade_and_shift_in(examples_3, UP),
                 lag_ratio=0.7
             )
         )
 
         self.play(
             fade_and_shift_out(VGroup(lim_text, text), UP),
-            fade_and_shift_out(VGroup(example_1, example_2, example_3), DOWN)
+            fade_and_shift_out(VGroup(example_1, example_2, examples_3), DOWN)
         )
 
 

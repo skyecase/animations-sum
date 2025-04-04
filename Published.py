@@ -3,7 +3,7 @@ from manim import *
 
 from modules.custom_mobjects import DottedLine, FullscreenAxes, create_axes
 from modules.helpers import create_time_getter, create_updater_container, fade_and_shift_in, fade_and_shift_out, fade_and_shift_out_color, grow_between, highlight, highlight_animation, morph_text, rotate_points
-from modules.interpolation import cubic_out, cubic_in, sin_smooth_in, sin_smooth_in_out, cubic_in_out
+from modules.interpolation import bounce, cubic_out, cubic_in, sin_smooth_in, sin_smooth_in_out, cubic_in_out
 
 
 # Adds the arrow on a sigma
@@ -602,7 +602,7 @@ class Definition(Scene):
         self.add(text)
 
         new_text = MathTex("\\lim_{n \\to \\infty} (f(n + x) - p_n(n + x)) = 0").move_to(UP*2.5)
-        s_def_text = MathTex("S(x) = \\lim_{n\\to\\infty} \\left( \\sum_{k=1}^n (f(k) - f(x+k)) + \\sum_{k=1}^x", "f(n+k)", "\\right)")
+        s_def_text = MathTex("S(x) = \\lim_{n\\to\\infty} \\left( \\sum_{k=1}^{n-1} (f(k) - f(x+k)) + \\sum_{k=0}^{x-1}", "f(n+k)", "\\right)")
 
         self.play(
             LaggedStart(
@@ -623,13 +623,13 @@ class Definition(Scene):
             highlight_animation(s_def_text[1], BLUE)
         )
 
-        new_s_def_text = MathTex("S(x) = \\lim_{n\\to\\infty} \\left( \\sum_{k=1}^n (f(k) - f(x+k)) + \\sum_{k=1}^x", "p_n(n+k)", "\\right)")
+        new_s_def_text = MathTex("S(x) = \\lim_{n\\to\\infty} \\left( \\sum_{k=1}^{n-1} (f(k) - f(x+k)) + \\sum_{k=0}^{x-1}", "p_n(n+k)", "\\right)")
 
         self.play(Transform(s_def_text, new_s_def_text))
 
         
         self.remove(s_def_text)
-        s_def_text = MathTex("S(x) = \\lim_{n\\to\\infty} \\left( \\sum_{k=1}^n (f(k) - f(x+k)) +", "\\sum_{k=1}^x p_n(n+k)", "\\right)")
+        s_def_text = MathTex("S(x) = \\lim_{n\\to\\infty} \\left( \\sum_{k=1}^{n-1} (f(k) - f(x+k)) +", "\\sum_{k=0}^{x-1} p_n(n+k)", "\\right)")
         self.add(s_def_text)
 
         polynomial_text = Tex("This is a polynomial!").move_to(s_def_text[1].get_bottom() + DOWN*0.5, UP).set_color(BLUE)
@@ -640,7 +640,7 @@ class Definition(Scene):
         )
 
 
-        p_text = MathTex("P_n(x) = \\sum_{k=1}^x p_n(n + k)").move_to(DOWN*2)
+        p_text = MathTex("P_n(x) = \\sum_{k=0}^{x-1} p_n(n + k)").move_to(DOWN*2)
 
         self.play(
             FadeIn(p_text, shift=UP),
@@ -648,7 +648,7 @@ class Definition(Scene):
         )
 
 
-        new_s_def_text = MathTex("S(x) = \\lim_{n\\to\\infty} \\left( \\sum_{k=1}^n (f(k) - f(x+k)) +", "P_n(x)", "\\right)")
+        new_s_def_text = MathTex("S(x) = \\lim_{n\\to\\infty} \\left( \\sum_{k=0}^{n-1} (f(k) - f(x+k)) +", "P_n(x)", "\\right)")
         self.play(Transform(s_def_text, new_s_def_text))
 
 
@@ -664,10 +664,10 @@ class Definition(Scene):
 
         then_text = Tex("then").move_to(top_text.get_left()*RIGHT + UP*0.25, LEFT)
 
-        new_s_def_text = MathTex("S(x) = \\lim_{n\\to\\infty} \\left( \\sum_{k=1}^n (f(k) - f(x+k)) +", "P_n(x)", "\\right)\\!\\!", ",").move_to(DOWN)
+        new_s_def_text = MathTex("S(x) = \\lim_{n\\to\\infty} \\left( \\sum_{k=0}^{n-1} (f(k) - f(x+k)) +", "P_n(x)", "\\right)\\!\\!", ",").move_to(DOWN)
 
 
-        new_p_text = MathTex("\\text{where}\\quad", "P_n(x) = \\sum_{k=1}^x p_n(n + k)", ".").move_to(DOWN*2.75)
+        new_p_text = MathTex("\\text{where}\\quad", "P_n(x) = \\sum_{k=0}^{x-1} p_n(n + k)", ".").move_to(DOWN*2.75)
 
         self.play(
             FadeIn(top_text, shift=DOWN),
@@ -681,7 +681,7 @@ class Definition(Scene):
         text = new_text; s_def_text = new_s_def_text; p_text = new_p_text
         self.add(text, s_def_text, p_text)
 
-        new_s_def_text = MathTex("S(x) = \\lim_{n\\to\\infty} \\left( \\sum_{k=1}^n (f(k) - f(x+k)) +", "P_n(x)", "\\right)").move_to(UP*1.5)
+        new_s_def_text = MathTex("S(x) = \\lim_{n\\to\\infty} \\left( \\sum_{k=1}^{n-1} (f(k) - f(x+k)) +", "P_n(x)", "\\right)").move_to(UP*1.5)
 
         self.play(
             FadeOut(VGroup(top_text, text, then_text), shift=UP*3),
@@ -690,34 +690,16 @@ class Definition(Scene):
         )
 
         self.remove(*s_def_text, *new_s_def_text)
-        s_def_text= MathTex("S(x) = \\lim_{n\\to\\infty} \\left(", "\\sum_{k=1}^n", "(f(k) - f(x+k)) + P_n", "(x)\\right)").move_to(UP*1.5)
+        s_def_text= MathTex("S(x) = \\lim_{n\\to\\infty} \\left(\\sum_{k=1}^{n-1} (f(k) - f(x+k)) +", "P_n(x)", "\\right)").move_to(UP*1.5)
         self.add(s_def_text)
 
         my_solution = MathTex("S(x) = \\lim_{n\\to\\infty} \\left( \\sum_{k=1}^{n-1} (f(k) - f(x+k)) +", "\\sum_{k=1}^m \\binom xk \\Delta^{k-1}f(n)", "\\right)").move_to(DOWN*1.5)
         self.play(Write(my_solution))
 
-        self.play(highlight_animation(VGroup(s_def_text[1][0], s_def_text[2][-1]), RED))
-
-        new_s_def_text= MathTex("S(x) = \\lim_{n\\to\\infty} \\left(", "\\sum_{k=1}^{n-1}", "(f(k) - f(x+k)) + P_{n", "-1}", "(x)\\right)").move_to(UP*1.5)
-
-        self.play(
-            Transform(s_def_text[0], new_s_def_text[0]),
-            Transform(s_def_text[1][0], new_s_def_text[1][0]),
-            grow_between(new_s_def_text[1][1:3], s_def_text[1][0]),
-            Transform(s_def_text[1][1:], new_s_def_text[1][3:]),
-            Transform(s_def_text[2], new_s_def_text[2]),
-            grow_between(new_s_def_text[3], s_def_text[2][-1]),
-            Transform(s_def_text[3], new_s_def_text[4]),
-        )
-
-        self.remove(*new_s_def_text, *s_def_text, *new_s_def_text[1], *s_def_text[1])
-        s_def_text= MathTex("S(x) = \\lim_{n\\to\\infty} \\left(\\sum_{k=1}^{n-1} (f(k) - f(x+k)) +", "P_{n-1}(x)", "\\right)").move_to(UP*1.5)
-        self.add(s_def_text)
-
         self.play(highlight_animation(s_def_text[1], BLUE))
         self.play(highlight_animation(my_solution[1], BLUE))
 
-        equality_text = MathTex("P_{n-1}(x) = \\sum_{k=1}^m \\binom xk \\Delta^{k-1}f(n)").move_to(DOWN*2)
+        equality_text = MathTex("P_n(x) = \\sum_{k=1}^m \\binom xk \\Delta^{k-1}f(n)").move_to(DOWN*2)
 
         self.play(
             LaggedStart(
@@ -726,6 +708,108 @@ class Definition(Scene):
                     my_solution.animate.shift(UP*2),
                 ),
                 Write(equality_text),
+                lag_ratio=0.5
+            )
+        )
+
+        self.play(
+            fade_and_shift_out_color(VGroup(s_def_text, my_solution), UP*2),
+            equality_text.animate(rate_func=cubic_in_out, run_time=2).move_to(ORIGIN)
+        )
+
+        self.wait()
+
+
+
+class PolynomialGraph(Scene):
+    def construct(self):
+        equality_text = MathTex("P_n(x) = \\sum_{k=1}^m \\binom xk \\Delta^{k-1}f(n)")
+        self.add(equality_text)
+
+        p_text = MathTex("P_n(x)", "= \\sum_{k=0}^{x-1} p_n(n+k)").move_to(UP)
+
+        self.play(
+            LaggedStart(
+                equality_text.animate.move_to(DOWN*2.25).set_color(GRAY),
+                Write(p_text),
+                lag_ratio = 0.3
+            )
+        )
+
+        p_text_2 = MathTex("P_n(x)", "\\approx \\sum_{k=0}^{x-1} f(n+k)")
+        p_text_2.shift(p_text[0].get_center() - p_text_2[0].get_center())
+
+        self.play(
+            p_text[1].animate.shift(UP*1.75).set_color(GRAY),
+            FadeIn(p_text_2[1], shift=UP*1.75),
+        )
+
+
+        self.play(equality_text.animate.shift(UP*0.75).set_color(WHITE))
+        self.play(highlight_animation(equality_text[0][6], YELLOW))
+
+        self.play(
+            Transform(equality_text, MathTex("P_n(x) = \\sum_{k=1}^3 \\binom xk \\Delta^{k-1}f(n)").move_to(DOWN*1.5))
+        )
+
+
+
+        n = 7.5
+        def f(x):
+            return math.cos(x) + 0.85
+        def S(x):
+            total = 0
+            for i in range(x):
+                total += f(n + i)
+            return total
+        def P(x):
+            return x * f(n) + x*(x-1)/2 * (f(n+1) - f(n)) + x*(x-1)*(x-2)/6 * (f(n+2) - 2*f(n+1) + f(n))
+
+        axes = FullscreenAxes(self, LEFT*5 + DOWN*2.5, [1.25, 1.25])
+
+        dots = [Dot(axes.coords_to_point(i, S(i)), 0.14, color=BLUE) for i in range(7)]
+        for dot in dots:
+            dot.set_z_index(1)
+
+        self.remove(p_text[0], *p_text_2)
+        p_text_2 = MathTex("P_n(x) \\approx", "\\sum_{k=0}^{x-1} f(n+k)").move_to(p_text_2)
+        self.add(p_text_2)
+
+
+        new_f_pos = LEFT*0.5 + UP*1.75
+
+        self.play(
+            LaggedStart(
+                AnimationGroup(
+                    FadeOut(p_text[1], shift=UP),
+                    p_text_2[1].animate.move_to(new_f_pos).set_color(BLUE),
+                    FadeOut(p_text_2[0], shift=new_f_pos - p_text_2[1].get_center()),
+                    equality_text.animate.move_to(RIGHT*3.5 + DOWN*1.25).set_color(GRAY).scale(0.8)
+                ),
+                AnimationGroup(
+                    create_axes(self, axes),
+                    LaggedStart(
+                        *[FadeIn(dot, scale=3, rate_func=bounce()) for dot in dots],
+                        lag_ratio = 0.12
+                    ),
+                ),
+                lag_ratio = 0.5
+            )
+        )
+        self.add(axes)
+
+
+        curve = ParametricFunction(lambda t: axes.coords_to_point(t, P(t)), [-0.6, 6.5], color=YELLOW)
+
+        self.play(
+            Create(curve, rate_func=linear),
+            equality_text.animate.scale(1/0.8).set_color(YELLOW)
+        )
+
+
+        self.play(
+            LaggedStart(
+                *[dot.animate(rate_func=cubic_out, run_time=0.5).scale(1.2).set_color(RED) for dot in dots[:4]],
                 lag_ratio=0.5
             )
         )

@@ -1,7 +1,7 @@
 import math
 from manim import *
 
-from modules.custom_mobjects import DottedLine, FullscreenAxes, create_axes
+from modules.custom_mobjects import DottedLine, FullscreenAxes, create_axes, uncreate_axes
 from modules.helpers import create_time_getter, create_updater_container, fade_and_shift_in, fade_and_shift_out, fade_and_shift_out_color, grow_between, highlight, highlight_animation, morph_text, rotate_points
 from modules.interpolation import bounce, cubic_out, cubic_in, sin_smooth_in, sin_smooth_in_out, cubic_in_out
 
@@ -723,14 +723,14 @@ class Definition(Scene):
 
 class PolynomialGraph(Scene):
     def construct(self):
-        equality_text = MathTex("P_n(x) = \\sum_{k=1}^m \\binom xk \\Delta^{k-1}f(n)")
-        self.add(equality_text)
+        ng_text = MathTex("P_n(x) =", "\\sum_{k=1}^m \\binom xk \\Delta^{k-1}f(n)")
+        self.add(ng_text)
 
         p_text = MathTex("P_n(x)", "= \\sum_{k=0}^{x-1} p_n(n+k)").move_to(UP)
 
         self.play(
             LaggedStart(
-                equality_text.animate.move_to(DOWN*2.25).set_color(GRAY),
+                ng_text.animate.move_to(DOWN*2.25).set_color(GRAY),
                 Write(p_text),
                 lag_ratio = 0.3
             )
@@ -745,11 +745,11 @@ class PolynomialGraph(Scene):
         )
 
 
-        self.play(equality_text.animate.shift(UP*0.75).set_color(WHITE))
-        self.play(highlight_animation(equality_text[0][6], YELLOW))
+        self.play(ng_text.animate.shift(UP*0.75).set_color(WHITE))
+        self.play(highlight_animation(ng_text[1][0], YELLOW))
 
         self.play(
-            Transform(equality_text, MathTex("P_n(x) = \\sum_{k=1}^3 \\binom xk \\Delta^{k-1}f(n)").move_to(DOWN*1.5))
+            Transform(ng_text, MathTex("P_n(x) =", "\\sum_{k=1}^3 \\binom xk \\Delta^{k-1}f(n)").move_to(DOWN*1.5))
         )
 
 
@@ -784,7 +784,7 @@ class PolynomialGraph(Scene):
                     FadeOut(p_text[1], shift=UP),
                     p_text_2[1].animate.move_to(new_f_pos).set_color(BLUE),
                     FadeOut(p_text_2[0], shift=new_f_pos - p_text_2[1].get_center()),
-                    equality_text.animate.move_to(RIGHT*3.5 + DOWN*1.25).set_color(GRAY).scale(0.8)
+                    ng_text.animate.move_to(RIGHT*3.5 + DOWN*1.25).set_color(GRAY).scale(0.8)
                 ),
                 AnimationGroup(
                     create_axes(self, axes),
@@ -803,13 +803,77 @@ class PolynomialGraph(Scene):
 
         self.play(
             Create(curve, rate_func=linear),
-            equality_text.animate.scale(1/0.8).set_color(YELLOW)
+            ng_text.animate.scale(1/0.8).set_color(YELLOW)
         )
 
 
         self.play(
             LaggedStart(
                 *[dot.animate(rate_func=cubic_out, run_time=0.5).scale(1.2).set_color(RED) for dot in dots[:4]],
-                lag_ratio=0.5
+                lag_ratio=0.25
             )
+        )
+
+
+        curve.reverse_direction()
+
+        new_ng_text = MathTex("\\sum_{k=1}^m \\binom xk \\Delta^{k-1}f(n)").move_to(UP*2)
+        new_ng_text.save_state()
+        highlight(new_ng_text[0][0], BLUE)
+
+        self.play(
+            LaggedStart(
+                AnimationGroup(
+                    uncreate_axes(self, axes, 0.75),
+                    LaggedStart(
+                        *[FadeOut(dot, scale=0) for dot in dots],
+                        lag_ratio = 0.1
+                    ),
+                    Uncreate(curve, rate_func=linear),
+                    fade_and_shift_out(p_text_2[1], UP),
+                ),
+                AnimationGroup(
+                    Transform(ng_text[1], new_ng_text[0]),
+                    FadeOut(ng_text[0], shift=new_ng_text[0].get_center() - ng_text[1].get_center())
+                ),
+                lag_ratio = 0.5
+            )
+        )
+        self.remove(*axes, *ng_text)
+        ng_text = new_ng_text
+        self.add(ng_text)
+
+        text = Tex("The unique degree $m$ polynomial that equals", "$$\\sum_{k=0}^{x-1} f(n+k)$$", "for $x = 0, 1, \\dots, m$.").move_to(DOWN*1.25)
+        text[0].shift(DOWN*0.25)
+        text[2].shift(UP*0.25)
+
+        self.play(Write(text, run_time=2))
+
+
+        title_text = Tex("\\underline{Newton-Gregory Interpolation Formula}").scale(1.1).move_to(UP*3)
+        self.play(
+            FadeIn(title_text, shift=DOWN),
+            ng_text.animate.restore().shift(DOWN*0.75),
+            text.animate.shift(DOWN*0.25)
+        )
+
+        self.remove(text[1], ng_text)
+
+        ng_text = MathTex("\\sum_{k=1}^m \\binom xk \\Delta^{k", "-1}", "f(n)").move_to(ng_text)
+        new_ng_text = MathTex("\\sum_{k=0}^m \\binom xk \\Delta^k", "f(n)").move_to(ng_text)
+        self.add(ng_text)
+
+        sum_text = MathTex("\\sum_{k=0}^{x-1}", "f(n+k)").move_to(text[1])
+        new_sum_text = MathTex("f(n+k)").move_to(text[1])
+
+        self.play(
+            highlight_animation(sum_text, BLUE)
+        )
+
+        self.play(
+            morph_text(ng_text, new_ng_text, [0, None, 1]),
+            Transform(sum_text[1], new_sum_text[0]),
+            sum_text[0].animate(remover=True).scale(0).shift(new_sum_text.get_left() - sum_text[0].get_center()).set_color(BLACK),
+            text[0].animate.shift(DOWN*0.25),
+            text[2].animate.shift(UP*0.25),
         )

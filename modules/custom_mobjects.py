@@ -116,6 +116,34 @@ def create_axes(scene: Scene, axes: FullscreenAxes, x_axis_time = 0.5, **kwargs)
     )
 
 
+def uncreate_axes(scene: Scene, axes: FullscreenAxes, x_axis_time = 0.5, **kwargs):
+    y_axis_time = x_axis_time * scene.camera.frame_height / scene.camera.frame_width
+
+    axes.x_line.reverse_direction()
+    axes.y_line.reverse_direction()
+    
+    return LaggedStart(
+        manim.AnimationGroup(
+            manim.Uncreate(axes.x_line, rate_func=manim.linear, run_time=x_axis_time),
+            LaggedStart(
+                *[tick.animate(rate_func=cubic_out, run_time=0.5).scale(0) for tick in axes.x_ticks],
+                lag_ratio = x_axis_time / (0.5 * len(axes.x_ticks))
+            ),
+            lag_ratio = x_axis_time / (0.5 * len(axes.x_ticks))
+        ),
+        manim.AnimationGroup(
+            manim.Uncreate(axes.y_line, rate_func=manim.linear, run_time=y_axis_time),
+            LaggedStart(
+                *[tick.animate(rate_func=cubic_out, run_time=0.5).scale(0) for tick in axes.y_ticks],
+                lag_ratio = y_axis_time / (0.5 * len(axes.y_ticks))
+            ),
+            lag_ratio = y_axis_time / (0.5 * len(axes.y_ticks))
+        ),
+        lag_ratio=0.2,
+        **kwargs
+    )
+
+
 LENGTH_THRESHOLD = 0.6
 
 def create_arrow(

@@ -723,14 +723,14 @@ class Definition(Scene):
 
 class PolynomialGraph(Scene):
     def construct(self):
-        ng_text = MathTex("P_n(x) =", "\\sum_{k=1}^m \\binom xk \\Delta^{k-1}f(n)")
-        self.add(ng_text)
+        gn_text = MathTex("P_n(x) =", "\\sum_{k=1}^m \\binom xk \\Delta^{k-1}f(n)")
+        self.add(gn_text)
 
         p_text = MathTex("P_n(x)", "= \\sum_{k=0}^{x-1} p_n(n+k)").move_to(UP)
 
         self.play(
             LaggedStart(
-                ng_text.animate.move_to(DOWN*2.25).set_color(GRAY),
+                gn_text.animate.move_to(DOWN*2.25).set_color(GRAY),
                 Write(p_text),
                 lag_ratio = 0.3
             )
@@ -745,11 +745,11 @@ class PolynomialGraph(Scene):
         )
 
 
-        self.play(ng_text.animate.shift(UP*0.75).set_color(WHITE))
-        self.play(highlight_animation(ng_text[1][0], YELLOW))
+        self.play(gn_text.animate.shift(UP*0.75).set_color(WHITE))
+        self.play(highlight_animation(gn_text[1][0], YELLOW))
 
         self.play(
-            Transform(ng_text, MathTex("P_n(x) =", "\\sum_{k=1}^3 \\binom xk \\Delta^{k-1}f(n)").move_to(DOWN*1.5))
+            Transform(gn_text, MathTex("P_n(x) =", "\\sum_{k=1}^3 \\binom xk \\Delta^{k-1}f(n)").move_to(DOWN*1.5))
         )
 
 
@@ -784,7 +784,7 @@ class PolynomialGraph(Scene):
                     FadeOut(p_text[1], shift=UP),
                     p_text_2[1].animate.move_to(new_f_pos).set_color(BLUE),
                     FadeOut(p_text_2[0], shift=new_f_pos - p_text_2[1].get_center()),
-                    ng_text.animate.move_to(RIGHT*3.5 + DOWN*1.25).set_color(GRAY).scale(0.8)
+                    gn_text.animate.move_to(RIGHT*3.5 + DOWN*1.25).set_color(GRAY).scale(0.8)
                 ),
                 AnimationGroup(
                     create_axes(self, axes),
@@ -803,7 +803,7 @@ class PolynomialGraph(Scene):
 
         self.play(
             Create(curve, rate_func=linear),
-            ng_text.animate.scale(1/0.8).set_color(YELLOW)
+            gn_text.animate.scale(1/0.8).set_color(YELLOW)
         )
 
 
@@ -817,9 +817,9 @@ class PolynomialGraph(Scene):
 
         curve.reverse_direction()
 
-        new_ng_text = MathTex("\\sum_{k=1}^m \\binom xk \\Delta^{k-1}f(n)").move_to(UP*2)
-        new_ng_text.save_state()
-        highlight(new_ng_text[0][0], BLUE)
+        new_gn_text = MathTex("\\sum_{k=1}^m \\binom xk \\Delta^{k-1}f(n)").move_to(UP*2)
+        new_gn_text.save_state()
+        highlight(new_gn_text[0][0], BLUE)
 
         self.play(
             LaggedStart(
@@ -833,15 +833,15 @@ class PolynomialGraph(Scene):
                     fade_and_shift_out(p_text_2[1], UP),
                 ),
                 AnimationGroup(
-                    Transform(ng_text[1], new_ng_text[0]),
-                    FadeOut(ng_text[0], shift=new_ng_text[0].get_center() - ng_text[1].get_center())
+                    Transform(gn_text[1], new_gn_text[0]),
+                    FadeOut(gn_text[0], shift=new_gn_text[0].get_center() - gn_text[1].get_center())
                 ),
                 lag_ratio = 0.5
             )
         )
-        self.remove(*axes, *ng_text)
-        ng_text = new_ng_text
-        self.add(ng_text)
+        self.remove(*axes, *gn_text)
+        gn_text = new_gn_text
+        self.add(gn_text)
 
         text = Tex("The unique degree $m$ polynomial that equals", "$$\\sum_{k=0}^{x-1} f(n+k)$$", "for $x = 0, 1, \\dots, m$.").move_to(DOWN*1.25)
         text[0].shift(DOWN*0.25)
@@ -850,18 +850,18 @@ class PolynomialGraph(Scene):
         self.play(Write(text, run_time=2))
 
 
-        title_text = Tex("\\underline{Newton-Gregory Interpolation Formula}").scale(1.1).move_to(UP*3)
+        title_text = Tex("\\underline{Gregory-Newton Interpolation Formula}").scale(1.1).move_to(UP*3)
         self.play(
             FadeIn(title_text, shift=DOWN),
-            ng_text.animate.restore().shift(DOWN*0.75),
+            gn_text.animate.restore().shift(DOWN*0.75),
             text.animate.shift(DOWN*0.25)
         )
 
-        self.remove(text[1], ng_text)
+        self.remove(text[1], gn_text)
 
-        ng_text = MathTex("\\sum_{k=1}^m \\binom xk \\Delta^{k", "-1}", "f(n)").move_to(ng_text)
-        new_ng_text = MathTex("\\sum_{k=0}^m \\binom xk \\Delta^k", "f(n)").move_to(ng_text)
-        self.add(ng_text)
+        gn_text = MathTex("\\sum_{k=1}^m \\binom xk \\Delta^{k", "-1}", "f(n)").move_to(gn_text)
+        new_gn_text = MathTex("\\sum_{k=0}^m \\binom xk \\Delta^k", "f(n)").move_to(gn_text)
+        self.add(gn_text)
 
         sum_text = MathTex("\\sum_{k=0}^{x-1}", "f(n+k)").move_to(text[1])
         new_sum_text = MathTex("f(n+k)").move_to(text[1])
@@ -871,9 +871,52 @@ class PolynomialGraph(Scene):
         )
 
         self.play(
-            morph_text(ng_text, new_ng_text, [0, None, 1]),
+            morph_text(gn_text, new_gn_text, [0, None, 1]),
             Transform(sum_text[1], new_sum_text[0]),
             sum_text[0].animate(remover=True).scale(0).shift(new_sum_text.get_left() - sum_text[0].get_center()).set_color(BLACK),
             text[0].animate.shift(DOWN*0.25),
             text[2].animate.shift(UP*0.25),
+        )
+
+
+        self.remove(*gn_text, *new_gn_text)
+        gn_text = MathTex("\\sum_{k=0}^m \\binom xk \\Delta^k f(n)").move_to(new_gn_text)
+        self.add(gn_text)
+
+        self.play(
+            gn_text.animate.move_to(ORIGIN),
+            FadeOut(VGroup(text[0], text[2], sum_text), shift=DOWN*2),
+            FadeOut(title_text, shift=UP)
+        )
+
+
+
+        DIST_FROM_CENTER = 2.75
+        discrete_header = Tex("Discrete").move_to(LEFT*DIST_FROM_CENTER + UP*2)
+        continuous_header = Tex("Continuous").move_to(RIGHT*DIST_FROM_CENTER + UP*2)
+
+        discrete_underline = Line(discrete_header.get_corner(DOWN + LEFT), discrete_header.get_corner(DOWN + RIGHT), stroke_width=3).shift(DOWN * 0.1)
+        continuous_underline = Line(continuous_header.get_corner(DOWN + LEFT), continuous_header.get_corner(DOWN + RIGHT), stroke_width=3).shift(DOWN * 0.1)
+
+        taylor_text = MathTex("\\sum_{k=0}^m \\frac{x^k}{k!} f^{(k)}(n)").move_to(RIGHT*DIST_FROM_CENTER)
+
+        self.play(
+            # arrow_1.animate.restore(),
+            # FadeIn(sum, scale=0),
+            # FadeIn(integral, scale=0),
+            gn_text.animate.move_to(LEFT*DIST_FROM_CENTER),
+            FadeIn(taylor_text, shift=LEFT*3),
+            LaggedStart(
+                Write(discrete_header),
+                Create(discrete_underline, rate_func=cubic_out),
+                Write(continuous_header),
+                Create(continuous_underline, rate_func=cubic_out),
+                lag_ratio = 0.2
+            )
+        )
+
+        self.play(
+            VGroup(discrete_header, discrete_underline, gn_text).animate.shift(LEFT*6.5),
+            VGroup(continuous_header, continuous_underline, taylor_text).animate.shift(RIGHT*6.5),
+            rate_func=cubic_in
         )

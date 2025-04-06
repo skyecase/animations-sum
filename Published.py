@@ -935,7 +935,7 @@ class Ending(Scene):
         )
 
         self.play(
-            Transform(text, Tex("Thanks for Watching!").scale(2))
+            Transform(text, Tex("Thanks for watching!").scale(2))
         )
 
         self.wait()

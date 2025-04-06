@@ -864,7 +864,7 @@ class PolynomialGraph(Scene):
         self.add(gn_text)
 
         sum_text = MathTex("\\sum_{k=0}^{x-1}", "f(n+k)").move_to(text[1])
-        new_sum_text = MathTex("f(n+k)").move_to(text[1])
+        new_sum_text = MathTex("f(n+x)").move_to(text[1])
 
         self.play(
             highlight_animation(sum_text, BLUE)
@@ -888,39 +888,6 @@ class PolynomialGraph(Scene):
             FadeOut(VGroup(text[0], text[2], sum_text), shift=DOWN*2),
             FadeOut(title_text, shift=UP)
         )
-
-
-
-        DIST_FROM_CENTER = 2.75
-        discrete_header = Tex("Discrete").move_to(LEFT*DIST_FROM_CENTER + UP*2)
-        continuous_header = Tex("Continuous").move_to(RIGHT*DIST_FROM_CENTER + UP*2)
-
-        discrete_underline = Line(discrete_header.get_corner(DOWN + LEFT), discrete_header.get_corner(DOWN + RIGHT), stroke_width=3).shift(DOWN * 0.1)
-        continuous_underline = Line(continuous_header.get_corner(DOWN + LEFT), continuous_header.get_corner(DOWN + RIGHT), stroke_width=3).shift(DOWN * 0.1)
-
-        taylor_text = MathTex("\\sum_{k=0}^m \\frac{x^k}{k!} f^{(k)}(n)").move_to(RIGHT*DIST_FROM_CENTER)
-
-        self.play(
-            # arrow_1.animate.restore(),
-            # FadeIn(sum, scale=0),
-            # FadeIn(integral, scale=0),
-            gn_text.animate.move_to(LEFT*DIST_FROM_CENTER),
-            FadeIn(taylor_text, shift=LEFT*3),
-            LaggedStart(
-                Write(discrete_header),
-                Create(discrete_underline, rate_func=cubic_out),
-                Write(continuous_header),
-                Create(continuous_underline, rate_func=cubic_out),
-                lag_ratio = 0.2
-            )
-        )
-
-        self.play(
-            VGroup(discrete_header, discrete_underline, gn_text).animate.shift(LEFT*6.5),
-            VGroup(continuous_header, continuous_underline, taylor_text).animate.shift(RIGHT*6.5),
-            rate_func=cubic_in
-        )
-
 
 
 class Ending(Scene):

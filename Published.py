@@ -920,3 +920,55 @@ class PolynomialGraph(Scene):
             VGroup(continuous_header, continuous_underline, taylor_text).animate.shift(RIGHT*6.5),
             rate_func=cubic_in
         )
+
+
+
+class Ending(Scene):
+    def construct(self):
+        gn_text = MathTex("\\sum_{k=0}^m \\binom xk \\Delta^k f(n)")
+        self.add(gn_text)
+
+        DIST_FROM_CENTER = 2.75
+        discrete_header = Tex("Discrete").move_to(LEFT*DIST_FROM_CENTER + UP*2)
+        continuous_header = Tex("Continuous").move_to(RIGHT*DIST_FROM_CENTER + UP*2)
+
+        discrete_underline = Line(discrete_header.get_corner(DOWN + LEFT), discrete_header.get_corner(DOWN + RIGHT), stroke_width=3).shift(DOWN * 0.1)
+        continuous_underline = Line(continuous_header.get_corner(DOWN + LEFT), continuous_header.get_corner(DOWN + RIGHT), stroke_width=3).shift(DOWN * 0.1)
+
+        taylor_text = MathTex("\\sum_{k=0}^m \\frac{x^k}{k!} f^{(k)}(n)").move_to(RIGHT*DIST_FROM_CENTER)
+
+
+        gn_title = Tex("Gregory-\\\\Newton\\\\Polynomials").scale(0.9).move_to(LEFT*DIST_FROM_CENTER + DOWN*1.5, UP)
+        taylor_title = Tex("Taylor\\\\Polynomials").scale(0.9).move_to(RIGHT*DIST_FROM_CENTER + DOWN*1.5, UP)
+
+
+        self.play(
+            gn_text.animate.move_to(LEFT*DIST_FROM_CENTER),
+            FadeIn(taylor_text, shift=LEFT*3),
+            LaggedStart(
+                Write(discrete_header),
+                Create(discrete_underline, rate_func=cubic_out),
+                fade_and_shift_in(gn_title, UP),
+                Write(continuous_header),
+                Create(continuous_underline, rate_func=cubic_out),
+                fade_and_shift_in(taylor_title, UP),
+                lag_ratio = 0.15
+            ),
+        )
+
+
+        text = MathTex("\\sum_{k=1}^x f(k) = \\lim_{n\\to\\infty} \\left( \\sum_{k=1}^{n-1} (f(k) - f(x+k)) + \\sum_{k=0}^{x-1} f(n+k) \\right)")
+        text.save_state()
+        text.scale(0)
+
+        self.play(
+            VGroup(discrete_header, discrete_underline, gn_text, gn_title).animate(rate_func=cubic_in, remover=True).shift(LEFT*6.5),
+            VGroup(continuous_header, continuous_underline, taylor_text, taylor_title).animate(rate_func=cubic_in, remover=True).shift(RIGHT*6.5),
+            text.animate(rate_func=cubic_in_out, run_time=1.75).restore()
+        )
+
+        self.play(
+            Transform(text, Tex("Thanks for Watching!").scale(2))
+        )
+
+        self.wait()

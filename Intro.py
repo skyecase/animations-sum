@@ -227,16 +227,22 @@ class IntroGraphs(Scene):
 class Integral(Scene):
 
     def construct(self):
-        prerequisite_text = Tex("Prerequisites:", joint_type=LineJointType.ROUND).scale(1.5).move_to(UP*2)
-        black_text = prerequisite_text.copy().set_stroke(width=10).set_color(BLACK)
+        prerequisite_text = Tex("Not ", "Prerequisites:", joint_type=LineJointType.ROUND).scale(1.5).move_to(UP*2)
+        black_text = prerequisite_text[1].copy().set_stroke(width=10).set_color(BLACK)
         prerequisite_text.set_z_index(1); black_text.set_z_index(1)
         self.add(black_text)
 
         underline = Underline(prerequisite_text).shift(UP*0.12)
 
         self.play(
-            Write(prerequisite_text),
-            Create(underline)
+            Write(prerequisite_text, run_time=1.5),
+            Create(underline, run_time=1.5)
+        )
+
+        self.play(
+            VGroup(black_text, prerequisite_text[1]).animate.move_to(UP*2),
+            underline.animate.become(Underline(prerequisite_text[1].copy().move_to(UP*2)).shift(UP*0.12)),
+            FadeOut(prerequisite_text[0], shift=LEFT)
         )
 
 
@@ -262,7 +268,7 @@ class Integral(Scene):
         integral = MathTex("\\int")
 
         self.play(
-            FadeOut(VGroup(underline, point_1, point_2, prerequisite_text), shift=UP),
+            FadeOut(VGroup(underline, point_1, point_2, prerequisite_text[1]), shift=UP),
             black_text.animate(remover=True).shift(UP),
             FadeIn(integral, shift=UP)
         )

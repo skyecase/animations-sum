@@ -905,7 +905,7 @@ class Ending(Scene):
         taylor_text = MathTex("\\sum_{k=0}^m \\frac{x^k}{k!} f^{(k)}(n)").move_to(RIGHT*DIST_FROM_CENTER)
 
 
-        gn_title = Tex("Gregory-\\\\Newton\\\\Polynomials").scale(0.9).move_to(LEFT*DIST_FROM_CENTER + DOWN*1.5, UP)
+        gn_title = Tex("Gregory-Newton\\\\Polynomials").scale(0.9).move_to(LEFT*DIST_FROM_CENTER + DOWN*1.5, UP)
         taylor_title = Tex("Taylor\\\\Polynomials").scale(0.9).move_to(RIGHT*DIST_FROM_CENTER + DOWN*1.5, UP)
 
 

@@ -648,7 +648,7 @@ class Definition(Scene):
         )
 
 
-        new_s_def_text = MathTex("S(x) = \\lim_{n\\to\\infty} \\left( \\sum_{k=0}^{n-1} (f(k) - f(x+k)) +", "P_n(x)", "\\right)")
+        new_s_def_text = MathTex("S(x) = \\lim_{n\\to\\infty} \\left( \\sum_{k=1}^{n-1} (f(k) - f(x+k)) +", "P_n(x)", "\\right)")
         self.play(Transform(s_def_text, new_s_def_text))
 
 
@@ -664,7 +664,7 @@ class Definition(Scene):
 
         then_text = Tex("then").move_to(top_text.get_left()*RIGHT + UP*0.25, LEFT)
 
-        new_s_def_text = MathTex("S(x) = \\lim_{n\\to\\infty} \\left( \\sum_{k=0}^{n-1} (f(k) - f(x+k)) +", "P_n(x)", "\\right)\\!\\!", ",").move_to(DOWN)
+        new_s_def_text = MathTex("S(x) = \\lim_{n\\to\\infty} \\left( \\sum_{k=1}^{n-1} (f(k) - f(x+k)) +", "P_n(x)", "\\right)\\!\\!", ",").move_to(DOWN)
 
 
         new_p_text = MathTex("\\text{where}\\quad", "P_n(x) = \\sum_{k=0}^{x-1} p_n(n + k)", ".").move_to(DOWN*2.75)

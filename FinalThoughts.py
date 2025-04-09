@@ -6,6 +6,55 @@ from modules.helpers import create_updater_container, fade_and_shift_in, fade_an
 from modules.interpolation import bounce, cubic_in
 
 
+
+class Decree(Scene):
+    def construct(self):
+        title = Tex("\\underline{Where We Made ``Decrees\"}").scale(1.2).move_to(UP*3)
+        self.play(fade_and_shift_in(title, UP))
+
+        recursive = MathTex("S(x+1) = S(x) + f(x+1)").move_to(UP*1.75)
+        self.play(fade_and_shift_in(recursive, UP))
+
+        binomial = MathTex("\\sum_{k_1=0}^{x-1} \\sum_{k_2=0}^{k_1-1} \\sum_{k_3=0}^{k_2-1} 1 = \\binom xk = \\frac{x(x-1)(x-2)}{3!}", ",").move_to(UP*0)
+        etc_1 = Tex("etc...").scale(0.75).move_to(binomial.get_right() + RIGHT*0.75, LEFT)
+        self.play(
+            LaggedStart(
+                fade_and_shift_in(binomial[0], UP),
+                LaggedStart(
+                    *[fade_and_shift_in(element, shift=LEFT*0.3, run_time = 0.5) for element in [binomial[1], *etc_1[0]]],
+                    lag_ratio = 0.125
+                ),
+                lag_ratio=0.666
+            )
+        )
+
+        approach_zero = MathTex("\\lim_{n\\to\\infty} \\sum_{k_1=0}^{x-1} \\sum_{k_2=0}^{k_1-1} \\sum_{k_3=0}^{k_2-1} \\sum_{k_4=0}^{k_3-1} \\Delta^3 f(n+k) = 0", ",").move_to(DOWN*2.25)
+        etc_2 = Tex("etc...").scale(0.75).move_to(approach_zero.get_right() + RIGHT*0.75, LEFT)
+        self.play(
+            LaggedStart(
+                fade_and_shift_in(approach_zero[0], UP),
+                LaggedStart(
+                    *[fade_and_shift_in(element, shift=LEFT*0.3, run_time = 0.5) for element in [approach_zero[1], *etc_2[0]]],
+                    lag_ratio = 0.125
+                ),
+                lag_ratio=0.666
+            )
+        )
+
+        self.play(
+            fade_and_shift_out(VGroup(title, recursive, binomial, approach_zero, etc_1, etc_2), UP)
+        )
+
+        lim_text = MathTex("\\lim_{x\\to\\infty} \\Delta^m f(x", ") = 0").move_to(UP*2)
+        text = MathTex("S(x", ") = \\lim_{n\\to\\infty}\\left( \\sum_{k=1}^{n-1}(f(k) - f(x", "+k)) + \\sum_{k=1}^m", "\\binom xk", "\\Delta^{k-1}f(n) \\right)")
+
+        self.play(
+            fade_and_shift_in(VGroup(lim_text, text), UP)
+        )
+
+
+
+
 class FinalThoughts(Scene):
     def construct(self):
         lim_text = MathTex("\\lim_{x\\to\\infty} \\Delta^m f(x", ") = 0").move_to(UP*2)

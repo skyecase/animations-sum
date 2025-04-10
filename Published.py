@@ -924,7 +924,7 @@ class Ending(Scene):
         )
 
 
-        text = MathTex("\\sum_{k=1}^x f(k) = \\lim_{n\\to\\infty} \\left( \\sum_{k=1}^{n-1} (f(k) - f(x+k)) + \\sum_{k=0}^{x-1} f(n+k) \\right)")
+        text = MathTex("\\sum_{k=1}^x f(k) = \\lim_{n\\to\\infty} \\left( \\sum_{k=1}^{n-1} (f(k) - f(x+k)) + \\sum_{k=1}^m \\binom xk \\Delta^{k-1} f(n) \\right)").scale(0.95)
         text.save_state()
         text.scale(0)
 

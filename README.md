@@ -1,4 +1,4 @@
-This repo contains all the Manim code for my video "How to Extend the Sum of Any Function".
+This repo contains all the [Manim](https://www.manim.community/) code for my video "[How to Extend the Sum of Any Function](https://www.youtube.com/watch?v=hkn9zeRuzHs)".
 
 This code was written for a slightly modified version of Manim Community v1.19.0. (I put a couple band-aid fixes for some minor bugs. I don't have my tweaks in a public repo right now, but almost everything should work with a regular Manim installation.)
 

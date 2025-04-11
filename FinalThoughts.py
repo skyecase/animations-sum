@@ -15,7 +15,7 @@ class Decree(Scene):
         recursive = MathTex("S(x+1) = S(x) + f(x+1)").move_to(UP*1.75)
         self.play(fade_and_shift_in(recursive, UP))
 
-        binomial = MathTex("\\sum_{k_1=0}^{x-1} \\sum_{k_2=0}^{k_1-1} \\sum_{k_3=0}^{k_2-1} 1 = \\binom xk = \\frac{x(x-1)(x-2)}{3!}", ",").move_to(UP*0)
+        binomial = MathTex("\\sum_{k_1=0}^{x-1} \\sum_{k_2=0}^{k_1-1} \\sum_{k_3=0}^{k_2-1} 1 = \\binom x3 = \\frac{x(x-1)(x-2)}{3!}", ",").move_to(UP*0)
         etc_1 = Tex("etc...").scale(0.75).move_to(binomial.get_right() + RIGHT*0.75, LEFT)
         self.play(
             LaggedStart(
@@ -28,7 +28,7 @@ class Decree(Scene):
             )
         )
 
-        approach_zero = MathTex("\\lim_{n\\to\\infty} \\sum_{k_1=0}^{x-1} \\sum_{k_2=0}^{k_1-1} \\sum_{k_3=0}^{k_2-1} \\sum_{k_4=0}^{k_3-1} \\Delta^3 f(n+k) = 0", ",").move_to(DOWN*2.25)
+        approach_zero = MathTex("\\lim_{n\\to\\infty} \\sum_{k_1=0}^{x-1} \\sum_{k_2=0}^{k_1-1} \\sum_{k_3=0}^{k_2-1} \\sum_{k_4=0}^{k_3-1} \\Delta^3 f(n+k_4) = 0", ",").move_to(DOWN*2.25)
         etc_2 = Tex("etc...").scale(0.75).move_to(approach_zero.get_right() + RIGHT*0.75, LEFT)
         self.play(
             LaggedStart(

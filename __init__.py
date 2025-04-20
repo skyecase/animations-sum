@@ -16,7 +16,7 @@ from . import ForwardDifference
 from . import Misc
 from . import RecursiveFormula
 from . import SpecificSolutions
-from . import __init__
+
 from . import NestedSums
 from . import ToTheRight
 from . import Intro
